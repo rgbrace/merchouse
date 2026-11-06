@@ -1,0 +1,29 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product-preorder",
+      "settings": {
+        "subtitle": "",
+        "fixed_details": "",
+        "view_labels": "Front,Back",
+        "notice_badge": "PRE-ORDER",
+        "close_date": "",
+        "button_label": "Pre-order Now",
+        "select_label": "Select a Size",
+        "sold_out_label": "Sold Out",
+        "closed_label": "Pre-orders Closed",
+        "go_to_checkout": false,
+        "tab1_label": "Fabric & Fit",
+        "tab2_label": "Shipping",
+        "tab3_label": "Returns",
+        "show_countdown": true,
+        "close_time": "23:59",
+        "countdown_label": "Orders close in",
+        "closed_message": "Pre-orders are closed."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

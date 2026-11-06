@@ -1,0 +1,32 @@
+{%- comment -%} Merchouse product card (More From, collections). Param: p (product) {%- endcomment -%}
+{%- liquid
+  assign color_opt = nil
+  for o in p.options_with_values
+    assign on = o.name | downcase
+    if on contains 'color' or on contains 'colour'
+      assign color_opt = o
+    endif
+  endfor
+  assign style_count = p.metafields.custom.style_siblings.value.size | default: 0
+-%}
+<a class="mh-card" href="{{ p.url }}">
+  <span class="mh-card__media">
+    {%- if p.featured_media -%}
+      {{ p.featured_media | image_url: width: 800 | image_tag: loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: p.title }}
+    {%- else -%}
+      {{ 'product-apparel-1' | placeholder_svg_tag: 'mh-card__placeholder' }}
+    {%- endif -%}
+  </span>
+  {%- if color_opt -%}
+    <span class="mh-card__dots" aria-label="{{ color_opt.values.size }} colors">
+      {%- for value in color_opt.values limit: 5 -%}
+        <span class="mh-card__dot" style="--swatch: {% render 'mh-swatch-color', value: value %};" title="{{ value | escape }}"></span>
+      {%- endfor -%}
+    </span>
+  {%- endif -%}
+  <span class="mh-card__title">{{ p.title | escape }}</span>
+  <span class="mh-card__price">{{ p.price | money_without_trailing_zeros }}</span>
+  {%- if style_count > 1 -%}
+    <span class="mh-card__styles">Available in {{ style_count }} styles</span>
+  {%- endif -%}
+</a>

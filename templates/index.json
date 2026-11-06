@@ -1,0 +1,12 @@
+{
+  "layout": "coming-soon",
+  "sections": {
+    "main": {
+      "type": "coming-soon",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

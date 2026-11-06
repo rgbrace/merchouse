@@ -1,0 +1,43 @@
+{%- comment -%}
+  Style picker: links between style versions of one design (custom.style_siblings).
+  Params: product, style_name, siblings (list of products, may include this product).
+{%- endcomment -%}
+{%- liquid
+  assign has_self = false
+  for sib in siblings
+    if sib.id == product.id
+      assign has_self = true
+    endif
+  endfor
+-%}
+{%- if siblings != blank -%}
+  <div class="mh-opt mh-styles" data-kind="style">
+    <p class="mh-opt__label">Style</p>
+    <ul class="mh-styles__row" role="list">
+      {%- unless has_self -%}
+        <li>
+          <span class="mh-style is-selected" aria-current="true">
+            {%- render 'mh-style-icon', style: style_name -%}
+            <span class="mh-style__label">{{ style_name | escape }}</span>
+          </span>
+        </li>
+      {%- endunless -%}
+      {%- for sib in siblings -%}
+        {%- assign sib_style = sib.metafields.custom.style.value | default: sib.type | default: sib.title -%}
+        <li>
+          {%- if sib.id == product.id -%}
+            <span class="mh-style is-selected" aria-current="true">
+              {%- render 'mh-style-icon', style: sib_style -%}
+              <span class="mh-style__label">{{ sib_style | escape }}</span>
+            </span>
+          {%- else -%}
+            <a class="mh-style{% unless sib.available %} is-unavailable{% endunless %}" href="{{ sib.url }}" data-mh-style-link>
+              {%- render 'mh-style-icon', style: sib_style -%}
+              <span class="mh-style__label">{{ sib_style | escape }}</span>
+            </a>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+{%- endif -%}
