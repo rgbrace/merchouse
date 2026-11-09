@@ -1,0 +1,44 @@
+{%- comment -%}
+  Merchouse style icons (from Figma "Style Item" component).
+  Usage: {% render 'mh-style-icon', style: 'Hooded' %}
+  Matches loosely: zip → Zip Hoodie, hood → Hooded, long → Long Sleeve,
+  perform → Performance, sweat/crew → Sweatshirt, polo, hat/cap, everything else → T-Shirt.
+{%- endcomment -%}
+{%- liquid
+  assign s = style | downcase
+  if s contains 'zip'
+    assign key = 'zip'
+  elsif s contains 'hood'
+    assign key = 'hooded'
+  elsif s contains 'long'
+    assign key = 'long'
+  elsif s contains 'perform'
+    assign key = 'performance'
+  elsif s contains 'sweat' or s contains 'crew'
+    assign key = 'sweatshirt'
+  elsif s contains 'polo'
+    assign key = 'polo'
+  elsif s contains 'hat' or s contains 'cap' or s contains 'beanie'
+    assign key = 'hat'
+  else
+    assign key = 'tee'
+  endif
+-%}
+{%- case key -%}
+  {%- when 'hooded' -%}
+    <svg class="mh-style-icon" viewBox="0 0 50 50" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M25 12.5524C22.9 12.5524 20.7 12.3524 18.78 11.8123C16.06 11.0621 13.93 9.6518 13.52 7.20129C13.48 6.92123 13.45 6.63117 13.45 6.33111C13.45 1.9602 22.41 1 25.01 1C27.61 1 36.57 1.9602 36.57 6.33111C36.57 6.63117 36.54 6.93124 36.5 7.20129C36.09 9.6518 33.96 11.0721 31.24 11.8123C29.32 12.3424 27.12 12.5524 25.02 12.5524"/><path d="M25 12.5524C25 12.5524 31.15 9.88189 31.15 6.33115C31.15 5.08089 28.52 4.55078 25 4.55078C21.48 4.55078 18.85 5.07089 18.85 6.33115C18.85 9.89189 25 12.5524 25 12.5524Z"/><path d="M36.5601 7.2113L43.6701 9.88186C42.3201 9.37175 39.2301 18.3236 39.2301 24.995V49H10.7801V24.995C10.7801 18.3236 7.69009 9.37175 6.34009 9.88186L13.4501 7.2113"/><path d="M43.67 9.88184C47.5 14.9429 49 33.5668 49 43.6689V45.4492H43.67C42.61 44.389 39.23 25.005 39.23 25.005"/><path d="M6.33 9.88184C2.5 14.9429 1 33.5668 1 43.6689V45.4492H6.33C7.39 44.389 10.77 25.005 10.77 25.005"/><path d="M10.7803 40.1081L11.0603 40.008C14.3003 38.9278 17.8503 36.6173 19.3803 33.5667L19.6603 32.9866H30.3303L30.6103 33.5667C32.1403 36.6173 35.6903 38.9278 38.9303 40.008L39.2103 40.1081"/><path d="M10.7803 45.4392H39.2203"/><path d="M31.2197 10.7721V11.8123V21.4343"/><path d="M18.7803 10.7721V11.8123V21.4343"/><path d="M6.33 45.4392V48.9992H1V45.4392"/><path d="M48.9999 45.4392V48.9992H43.6699V45.4392"/></svg>
+  {%- when 'long' -%}
+    <svg class="mh-style-icon" viewBox="0 0 51 50" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.45508 6.33L12.7651 2.68L16.1251 1C16.1251 1 16.4851 8.11 25.0051 8.11C33.5251 8.11 33.8851 1 33.8851 1L37.2451 2.68L44.5551 6.33"/><path d="M42.385 11.33C40.905 15.15 39.225 20.5 39.225 25C39.315 32.91 38.335 49 38.335 49H11.665C11.665 49 10.685 32.91 10.775 25C10.775 20.5 9.08499 15.14 7.61499 11.33"/><path d="M39.2251 25C40.0051 33.13 42.7851 49 42.7851 49H48.5651C48.5651 49 49.0651 38.92 49.0051 35.22C48.8051 23.5 46.8051 10.04 44.5651 6.32996"/><path d="M10.775 25C9.995 33.13 7.215 49 7.215 49H1.445C1.445 49 0.944998 38.92 1.005 35.22C1.205 23.5 3.205 10.04 5.445 6.32996"/><path d="M16.125 1C16.125 1 18.935 3.22 25.005 3.22C31.075 3.22 33.885 1 33.885 1"/></svg>
+  {%- when 'performance' -%}
+    <svg class="mh-style-icon" viewBox="0 0 50 50" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6101 1.01001C15.6101 1.01001 17.0901 9.46001 25.0001 9.46001C32.9101 9.46001 34.3901 1.01001 34.3901 1.01001"/><path d="M15.6101 1.01001C15.6101 1.01001 18.9001 3.83001 25.0001 3.83001C31.1001 3.83001 34.3901 1.01001 34.3901 1.01001"/><path d="M15.61 1L8.47 6.34C7.68 6.94 7.07 7.76 6.72 8.68L1 23.95L7.27 28.13L11.44 21.87"/><path d="M38.5599 21.87L42.7299 28.13L48.9999 23.95L43.2799 8.68C42.9299 7.76 42.3199 6.95 41.5299 6.34L34.3899 1"/><path d="M38.5599 11.33V44.82C30.3999 50.39 19.5899 50.39 11.4299 44.82V11.33"/></svg>
+  {%- when 'sweatshirt' -%}
+    <svg class="mh-style-icon" viewBox="0 0 51 50" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.1214 1C16.1214 1 16.4814 8.11 25.0014 8.11C33.5214 8.11 33.8814 1 33.8814 1L37.2414 2.68L44.5514 6.33C44.5514 6.33 39.2314 17 39.2314 25C39.3214 32.91 39.6714 44.11 38.3414 45.44V49H11.6714V45.44C10.3414 44.11 10.6914 32.91 10.7814 25C10.7814 17 5.46143 6.33 5.46143 6.33L12.7714 2.68L16.1314 1H16.1214Z"/><path d="M12.7615 2.68005C13.4315 7.20005 18.3215 11.6701 25.0015 11.6701C31.6815 11.6701 36.5715 7.21005 37.2415 2.68005"/><path d="M39.2314 25C40.0114 33.13 41.1314 42.66 42.7914 45.44V49H48.5714V45.44C48.8914 42.45 49.0714 38.92 49.0114 35.22C48.8114 23.5 46.8114 10.04 44.5714 6.32996"/><path d="M10.7815 25C10.0015 33.13 8.88145 42.66 7.22145 45.44V49H1.45145V45.44C1.13145 42.45 0.951453 38.92 1.01145 35.22C1.21145 23.5 3.21145 10.04 5.45145 6.32996"/><path d="M16.1215 1C16.1215 1 18.9315 3.22 25.0015 3.22C31.0715 3.22 33.8815 1 33.8815 1"/><path d="M11.6715 45.4399H38.3415"/><path d="M42.7815 45.4399H48.5615"/><path d="M7.23142 45.4399H1.45142"/></svg>
+  {%- when 'zip' -%}
+    <svg class="mh-style-icon" viewBox="0 0 50 51" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M32.9999 1L36.5999 4C37.3599 4.63 37.6999 5.64 37.4999 6.6C37.2999 7.57 36.5799 8.34 35.6299 8.62L25.0699 11.67C28.5499 8.36 32.9999 4.39 32.9999 1ZM32.9999 1H16.9999M16.9999 1C16.9999 4.39 21.4399 8.36 24.9299 11.67L14.3699 8.62C13.4299 8.34 12.7099 7.57 12.4999 6.6C12.2999 5.64 12.6399 4.64 13.3999 4L16.9999 1Z"/><path d="M37.5001 6.59998L45.4501 10.78C45.4501 10.78 40.1201 19.12 40.1201 25.89V49H9.89006V25.89C9.89006 19.12 4.56006 10.78 4.56006 10.78L12.5101 6.59998"/><path d="M45.4401 10.78C48.3301 13.67 48.8701 36.51 48.9701 45.45C49.0001 47.65 49.0001 49.01 49.0001 49.01H43.6701L43.1201 45.45L40.1201 25.89"/><path d="M4.56 10.78C1.67 13.67 1.13 36.52 1.02 45.45C1 47.65 1 49.01 1 49.01H6.33L6.88 45.45L9.88 25.89"/><path d="M9.88989 45.4399H25.0699H40.1099"/><path d="M49.0001 45.4399H48.9701H43.1201"/><path d="M1 45.4399H1.02H6.88"/><path d="M25.0701 11.67V31.22V45.44V49"/><path d="M10.04 40.11C13.95 38.99 17.11 36.08 18.53 32.27L18.93 31.22H31.22L31.61 32.27C33.04 36.08 36.2 38.99 40.11 40.11"/><path d="M30.3301 10.78V23.22"/><path d="M19.6699 10.78V23.22"/></svg>
+  {%- when 'polo' -%}
+    <svg class="mh-style-icon" viewBox="0 0 22 22" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.79167 2.75L2.75 5.5L4.58333 9.35L6.6 8.43333V19.25H15.4V8.43333L17.4167 9.35L19.25 5.5L14.2083 2.75"/><path d="M7.7915 2.75L9.62484 5.95833L10.9998 4.58333L12.3748 5.95833L14.2082 2.75"/><path d="M11 4.58337V9.16671"/></svg>
+  {%- when 'hat' -%}
+    <svg class="mh-style-icon" viewBox="0 0 22 22" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6665 14.2084C3.6665 9.44171 6.9665 5.95837 10.9998 5.95837C15.0332 5.95837 18.3332 9.44171 18.3332 14.2084H3.6665Z"/><path d="M12.8332 14.2084H18.7915C19.0665 15.4917 18.2415 16.3167 16.4998 16.3167H11.9165"/><path d="M10.9998 5.95837V14.2084M7.33317 7.79171C6.59984 9.62504 6.4165 11.9167 6.4165 14.2084"/></svg>
+  {%- else -%}
+    <svg class="mh-style-icon" viewBox="0 0 50 50" fill="none" aria-hidden="true" focusable="false" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M38.8099 11.33C38.5299 13.19 38.3299 15.38 38.3299 17.89V49H11.6699V17.89C11.6699 15.38 11.4799 13.19 11.1899 11.33"/><path d="M9 3.67L16.11 1C16.11 1 17.51 9 25 9C32.49 9 33.89 1 33.89 1L41 3.67"/><path d="M41.0001 3.67004L49.0001 12.56L43.6701 20.56L38.3301 17.89"/><path d="M9 3.67004L1 12.56L6.33 20.56L11.67 17.89"/><path d="M16.1101 1C16.1101 1 19.2201 3.67 25.0001 3.67C30.7801 3.67 33.8901 1 33.8901 1"/></svg>
+{%- endcase -%}

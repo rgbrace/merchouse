@@ -1,0 +1,23 @@
+{%- comment -%} Complete the Look card. Param: p (product) {%- endcomment -%}
+{%- liquid
+  assign single = false
+  if p.has_only_default_variant or p.variants.size == 1
+    assign single = true
+  endif
+-%}
+<div class="mh-ctl__card">
+  <a href="{{ p.url }}" class="mh-ctl__media">
+    {%- if p.featured_media -%}
+      {{ p.featured_media | image_url: width: 600 | image_tag: loading: 'lazy', widths: '240, 360, 480, 600', sizes: '(min-width: 990px) 220px, 45vw', alt: p.title }}
+    {%- else -%}
+      {{ 'product-apparel-2' | placeholder_svg_tag: 'mh-ctl__placeholder' }}
+    {%- endif -%}
+  </a>
+  <a href="{{ p.url }}" class="mh-ctl__title">{{ p.title | escape }}</a>
+  <p class="mh-ctl__price">{{ p.price | money_without_trailing_zeros }}</p>
+  {%- if single and p.available -%}
+    <button type="button" class="mh-btn mh-btn--small mh-btn--ghost" data-mh-quick-add="{{ p.selected_or_first_available_variant.id }}">Add to Cart</button>
+  {%- else -%}
+    <a href="{{ p.url }}" class="mh-btn mh-btn--small mh-btn--ghost">{% if p.available %}Choose Options{% else %}Sold Out{% endif %}</a>
+  {%- endif -%}
+</div>

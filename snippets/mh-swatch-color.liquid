@@ -1,0 +1,27 @@
+{%- comment -%}
+  Outputs a CSS color for a Color option value.
+  1) Shopify's own swatch color (set on the option value in admin), else
+  2) Theme settings → Merchouse → Swatch colors ("Name: #hex" per line), else
+  3) the value itself (works for plain names like "Black").
+{%- endcomment -%}
+{%- liquid
+  assign out = ''
+  if value.swatch.color
+    assign out = value.swatch.color
+  else
+    assign want = value | append: '' | downcase | strip
+    assign lines = settings.mh_swatch_map | newline_to_br | split: '<br />'
+    for line in lines
+      assign pair = line | split: ':'
+      assign name = pair[0] | downcase | strip
+      if name == want
+        assign out = pair[1] | strip
+        break
+      endif
+    endfor
+    if out == ''
+      assign out = want | remove: ' '
+    endif
+  endif
+-%}
+{{- out -}}

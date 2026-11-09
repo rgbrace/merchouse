@@ -1,0 +1,505 @@
+{%- comment -%}
+  Merchouse · Product page (matches Figma "PDP-Desktop" / "PDP-Mobile")
+
+  Product setup
+  - Options: Color, Fit, Size (any order). Option names are matched loosely:
+    "color/colour" → swatches, "fit" → Youth/Adult toggle, anything else → pills.
+  - Each style (T-Shirt, Hooded, …) is its own product, linked with the
+    custom.style_siblings metafield (list of products).
+
+  Product metafields (namespace "custom"), all optional:
+    style               single line text   e.g. "T-Shirt" (falls back to product type)
+    style_siblings      list of products   every style version of this design
+    team_label          single line text   e.g. "GEORGETOWN HS | TENNIS" (falls back to vendor)
+    giveback_recipient  single line text   e.g. "Georgetown Tennis" (falls back to vendor)
+    giveback_flat       decimal            flat dollars back, e.g. 5 (premium brands)
+    giveback_percent    integer            overrides the theme default (20)
+    fabric_fit          rich text          Fabric & Fit tab (falls back to description)
+    complete_the_look   list of products   hand-picked pairings (else automatic)
+    team_collection     collection         "More From" source (else first collection)
+
+  Images: put the color name in each image's alt text ("Ice Blue front",
+  "Ice Blue back") so the gallery follows the selected color. Alt text that
+  contains "back" is used for the BACK view.
+{%- endcomment -%}
+
+{%- liquid
+  assign mf = product.metafields.custom
+  assign current_variant = product.selected_or_first_available_variant
+  assign preselect = false
+  if product.selected_variant
+    assign preselect = true
+  endif
+
+  assign style_name = mf.style.value | default: product.type | default: 'T-Shirt'
+  assign team_label = mf.team_label.value | default: product.vendor
+  assign recipient = mf.giveback_recipient.value | default: product.vendor
+  assign gb_percent = mf.giveback_percent.value | default: settings.mh_giveback_percent | default: 20
+  assign gb_flat = mf.giveback_flat.value | default: 0
+  if gb_flat > 0
+    assign gb_cents = gb_flat | times: 100 | round
+  else
+    assign gb_cents = current_variant.price | times: gb_percent | divided_by: 100.0 | round
+  endif
+
+  assign color_index = -1
+  assign fit_index = -1
+  for option in product.options_with_values
+    assign oname = option.name | downcase
+    if oname contains 'color' or oname contains 'colour'
+      assign color_index = forloop.index0
+    elsif oname contains 'fit'
+      assign fit_index = forloop.index0
+    endif
+  endfor
+
+  assign sibling_ids = product.id | append: ','
+  for sib in mf.style_siblings.value
+    assign sibling_ids = sibling_ids | append: sib.id | append: ','
+  endfor
+
+  assign team_collection = mf.team_collection.value
+  if team_collection == blank
+    for c in product.collections
+      unless c.handle == 'all' or c.handle == 'frontpage'
+        assign team_collection = c
+        break
+      endunless
+    endfor
+  endif
+
+  assign form_id = 'MhForm-' | append: section.id
+  assign ctl_ids = ','
+-%}
+
+<section
+  class="mh-pdp mh-pdp--full"
+  id="MhPdp-{{ section.id }}"
+  data-section="{{ section.id }}"
+  data-preselect="{{ preselect }}"
+  data-gb-flat="{{ gb_flat }}"
+  data-gb-percent="{{ gb_percent }}"
+>
+  <div class="mh-pdp__grid">
+    {%- comment -%} ---------- Gallery ---------- {%- endcomment -%}
+    <div class="mh-pdp__gallery">
+      <div class="mh-pdp__gallery-inner">
+        <div class="mh-pdp__stage" data-mh-stage>
+          {%- assign img_index = 0 -%}
+          {%- for media in product.media -%}
+            {%- if media.media_type == 'image' -%}
+              {%- assign alt = media.alt | default: '' | downcase -%}
+              <div
+                class="mh-pdp__slide{% if img_index == 0 %} is-active{% endif %}"
+                data-mh-media="{{ media.id }}"
+                data-alt="{{ alt | escape }}"
+                data-back="{% if alt contains 'back' %}true{% else %}false{% endif %}"
+              >
+                {{
+                  media.preview_image
+                  | image_url: width: 1600
+                  | image_tag:
+                    class: 'mh-pdp__img',
+                    widths: '400, 600, 800, 1100, 1400, 1600',
+                    sizes: '(min-width: 990px) 688px, 100vw',
+                    loading: 'eager',
+                    alt: media.alt
+                }}
+              </div>
+              {%- assign img_index = img_index | plus: 1 -%}
+            {%- endif -%}
+          {%- else -%}
+            {{ 'product-apparel-1' | placeholder_svg_tag: 'mh-pdp__img mh-pdp__img--placeholder' }}
+          {%- endfor -%}
+        </div>
+
+        <div class="mh-pdp__views" role="group" aria-label="Product views" data-mh-views hidden>
+          <button type="button" class="mh-pdp__view is-active" data-mh-view-btn="front" aria-pressed="true">
+            {{- section.settings.front_label | escape -}}
+          </button>
+          <span class="mh-pdp__view-sep" aria-hidden="true">|</span>
+          <button type="button" class="mh-pdp__view" data-mh-view-btn="back" aria-pressed="false">
+            {{- section.settings.back_label | escape -}}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {%- comment -%} ---------- Title block ---------- {%- endcomment -%}
+    <div class="mh-pdp__head">
+      <div class="mh-pdp__title-block">
+        <h1 class="mh-pdp__title">{{ product.title | escape }}</h1>
+        {%- if team_label != blank -%}
+          <p class="mh-pdp__subtitle">{{ team_label | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.show_giveback and recipient != blank -%}
+          <p class="mh-giveback">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 14.2 6.9 13.2C3 9.7.5 7.4.5 4.6.5 2.3 2.3.5 4.6.5c1.3 0 2.5.6 3.4 1.6C8.9 1.1 10.1.5 11.4.5c2.3 0 4.1 1.8 4.1 4.1 0 2.8-2.5 5.1-6.4 8.6z"/></svg>
+            <span><span data-mh-giveback>{{ gb_cents | money_without_trailing_zeros }}</span> back to {{ recipient | escape }}</span>
+          </p>
+        {%- endif -%}
+      </div>
+      <p class="mh-pdp__price-top" data-mh-price>{{ current_variant.price | money_without_trailing_zeros }}</p>
+    </div>
+
+    {%- comment -%} ---------- Details ---------- {%- endcomment -%}
+    <div class="mh-pdp__details">
+      {%- form 'product', product, id: form_id, class: 'mh-pdp__form', novalidate: 'novalidate' -%}
+        <input type="hidden" name="id" value="{{ current_variant.id }}" data-mh-variant-id>
+        <input type="hidden" name="quantity" value="1">
+
+        {%- for option in product.options_with_values -%}
+          {%- if product.has_only_default_variant -%}{%- break -%}{%- endif -%}
+          {%- assign oi = forloop.index0 -%}
+
+          {%- if oi == color_index -%}
+            <fieldset class="mh-opt" data-mh-option="{{ oi }}" data-kind="color">
+              <legend class="mh-opt__label">
+                {{ option.name | escape }}
+                <span class="mh-opt__value" data-mh-selected-name>{{ current_variant.options[oi] | escape }}</span>
+              </legend>
+              <div class="mh-swatches">
+                {%- for value in option.values -%}
+                  <button
+                    type="button"
+                    class="mh-swatch{% if current_variant.options[oi] == value %} is-selected{% endif %}"
+                    data-mh-value="{{ value | escape }}"
+                    aria-label="{{ value | escape }}"
+                    aria-pressed="{% if current_variant.options[oi] == value %}true{% else %}false{% endif %}"
+                    title="{{ value | escape }}"
+                    style="--swatch: {% render 'mh-swatch-color', value: value %};"
+                  ></button>
+                {%- endfor -%}
+              </div>
+            </fieldset>
+
+            {%- if section.settings.show_styles -%}
+              {%- comment -%} Style row sits right after Color, like the Figma file. {%- endcomment -%}
+              {%- render 'mh-style-row', product: product, style_name: style_name, siblings: mf.style_siblings.value -%}
+            {%- endif -%}
+
+          {%- elsif oi == fit_index -%}
+            <fieldset class="mh-opt" data-mh-option="{{ oi }}" data-kind="fit">
+              <legend class="mh-opt__label">{{ option.name | escape }}</legend>
+              <div class="mh-fit">
+                {%- for value in option.values -%}
+                  <button
+                    type="button"
+                    class="mh-fit__btn{% if current_variant.options[oi] == value %} is-selected{% endif %}"
+                    data-mh-value="{{ value | escape }}"
+                    aria-pressed="{% if current_variant.options[oi] == value %}true{% else %}false{% endif %}"
+                  >
+                    {{- value | escape -}}
+                  </button>
+                {%- endfor -%}
+              </div>
+            </fieldset>
+
+          {%- else -%}
+            <fieldset class="mh-opt" data-mh-option="{{ oi }}" data-kind="size">
+              <legend class="mh-opt__label">{{ option.name | escape }}</legend>
+              <div class="mh-sizes">
+                {%- for value in option.values -%}
+                  <button
+                    type="button"
+                    class="mh-size{% if preselect and current_variant.options[oi] == value %} is-selected{% endif %}"
+                    data-mh-value="{{ value | escape }}"
+                    aria-pressed="false"
+                  >
+                    {{- value | escape -}}
+                  </button>
+                {%- endfor -%}
+              </div>
+            </fieldset>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if section.settings.show_styles and color_index == -1 -%}
+          {%- render 'mh-style-row', product: product, style_name: style_name, siblings: mf.style_siblings.value -%}
+        {%- endif -%}
+
+        <noscript>
+          <label class="mh-opt__label" for="MhNoJs-{{ section.id }}">Option</label>
+          <select id="MhNoJs-{{ section.id }}" name="id" class="mh-field__input">
+            {%- for v in product.variants -%}
+              <option value="{{ v.id }}" {% unless v.available %}disabled{% endunless %}>
+                {{- v.title | escape }} – {{ v.price | money_without_trailing_zeros -}}
+              </option>
+            {%- endfor -%}
+          </select>
+        </noscript>
+
+        <div class="mh-buy">
+          <p class="mh-buy__price" data-mh-price>{{ current_variant.price | money_without_trailing_zeros }}</p>
+          <button type="submit" name="add" class="mh-btn mh-btn--green mh-buy__btn" data-mh-buy disabled>
+            {{- section.settings.select_label | escape -}}
+          </button>
+        </div>
+        <p class="mh-buy__msg" data-mh-msg role="status" aria-live="polite"></p>
+      {%- endform -%}
+
+      {%- comment -%} Tabs {%- endcomment -%}
+      {%- if mf.fabric_fit != blank -%}
+        {%- assign fabric = mf.fabric_fit | metafield_tag -%}
+      {%- else -%}
+        {%- assign fabric = product.description -%}
+      {%- endif -%}
+      <div class="mh-tabs" data-mh-tabs>
+        <div class="mh-tabs__bar" role="tablist">
+          <button type="button" class="mh-tabs__tab is-active" role="tab" aria-selected="true" data-mh-tab="1">
+            {{- section.settings.tab1_label | escape -}}
+          </button>
+          {%- if section.settings.tab2_content != blank -%}
+            <button type="button" class="mh-tabs__tab" role="tab" aria-selected="false" data-mh-tab="2">
+              {{- section.settings.tab2_label | escape -}}
+            </button>
+          {%- endif -%}
+          {%- if section.settings.tab3_content != blank -%}
+            <button type="button" class="mh-tabs__tab" role="tab" aria-selected="false" data-mh-tab="3">
+              {{- section.settings.tab3_label | escape -}}
+            </button>
+          {%- endif -%}
+        </div>
+        <div class="mh-tabs__panel rte" role="tabpanel" data-mh-panel="1">{{ fabric }}</div>
+        {%- if section.settings.tab2_content != blank -%}
+          <div class="mh-tabs__panel rte" role="tabpanel" data-mh-panel="2" hidden>{{ section.settings.tab2_content }}</div>
+        {%- endif -%}
+        {%- if section.settings.tab3_content != blank -%}
+          <div class="mh-tabs__panel rte" role="tabpanel" data-mh-panel="3" hidden>{{ section.settings.tab3_content }}</div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Complete the Look {%- endcomment -%}
+      {%- if section.settings.show_ctl -%}
+        {%- liquid
+          assign ctl_count = 0
+          assign picks = mf.complete_the_look.value
+        -%}
+        {%- capture ctl_html -%}
+          {%- if picks != blank -%}
+            {%- for p in picks limit: 2 -%}
+              {%- render 'mh-ctl-card', p: p -%}
+              {%- assign ctl_count = ctl_count | plus: 1 -%}
+              {%- assign ctl_ids = ctl_ids | append: p.id | append: ',' -%}
+            {%- endfor -%}
+          {%- elsif team_collection != blank -%}
+            {%- assign my_style = style_name | downcase -%}
+            {%- for p in team_collection.products -%}
+              {%- if ctl_count >= 2 -%}{%- break -%}{%- endif -%}
+              {%- assign pid = p.id | append: ',' -%}
+              {%- if sibling_ids contains pid -%}{%- continue -%}{%- endif -%}
+              {%- unless p.available -%}{%- continue -%}{%- endunless -%}
+              {%- assign p_style = p.metafields.custom.style.value | default: p.type | downcase -%}
+              {%- if p_style == my_style -%}{%- continue -%}{%- endif -%}
+              {%- render 'mh-ctl-card', p: p -%}
+              {%- assign ctl_count = ctl_count | plus: 1 -%}
+              {%- assign ctl_ids = ctl_ids | append: p.id | append: ',' -%}
+            {%- endfor -%}
+          {%- endif -%}
+        {%- endcapture -%}
+        {%- if ctl_count > 0 -%}
+          <div class="mh-ctl">
+            <h2 class="mh-eyebrow">{{ section.settings.ctl_heading | escape }}</h2>
+            <div class="mh-ctl__row">{{ ctl_html }}</div>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment -%} ---------- More From ---------- {%- endcomment -%}
+  {%- if section.settings.show_more_from and team_collection != blank -%}
+    {%- assign shown = 0 -%}
+    {%- capture more_html -%}
+      {%- for p in team_collection.products -%}
+        {%- if shown >= section.settings.more_from_count -%}{%- break -%}{%- endif -%}
+        {%- assign pid = p.id | append: ',' -%}
+        {%- if sibling_ids contains pid -%}{%- continue -%}{%- endif -%}
+        {%- assign cpid = ',' | append: p.id | append: ',' -%}
+        {%- if ctl_ids contains cpid -%}{%- continue -%}{%- endif -%}
+        <li class="mh-more__item">{%- render 'mh-product-card', p: p -%}</li>
+        {%- assign shown = shown | plus: 1 -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- if shown > 0 -%}
+      <div class="mh-more">
+        <h2 class="mh-eyebrow">
+          {{- section.settings.more_from_prefix | escape }} {{ team_collection.title | escape -}}
+        </h2>
+        <ul class="mh-more__list" role="list">{{ more_html }}</ul>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+
+  <script type="application/json" data-mh-variants>
+    [
+      {%- for v in product.variants -%}
+        {"id":{{ v.id }},"available":{{ v.available }},"options":{{ v.options | json }},"price":{{ v.price }},"priceText":{{ v.price | money_without_trailing_zeros | json }},"media":{% if v.featured_media %}{{ v.featured_media.id }}{% else %}null{% endif %}}
+        {%- unless forloop.last %},{% endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+  <script type="application/json" data-mh-labels>
+    {
+      "buy": {{ section.settings.button_label | json }},
+      "select": {{ section.settings.select_label | json }},
+      "adding": {{ section.settings.adding_label | json }},
+      "added": {{ section.settings.added_label | json }},
+      "soldOut": {{ section.settings.sold_out_label | json }},
+      "colorIndex": {{ color_index }},
+      "moneyFormat": {{ shop.money_format | json }}
+    }
+  </script>
+</section>
+
+<script src="{{ 'merchouse-pdp.js' | asset_url }}" defer="defer"></script>
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{% schema %}
+{
+  "name": "Merchouse product",
+  "tag": "div",
+  "class": "mh-pdp-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_giveback",
+      "label": "Show give-back line",
+      "default": true,
+      "info": "Amount = product's giveback_flat metafield, otherwise the give-back % (Theme settings → Merchouse)."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_styles",
+      "label": "Show style row",
+      "default": true,
+      "info": "Uses the style_siblings metafield."
+    },
+    {
+      "type": "text",
+      "id": "front_label",
+      "label": "Front image label",
+      "default": "Front"
+    },
+    {
+      "type": "text",
+      "id": "back_label",
+      "label": "Back image label",
+      "default": "Back"
+    },
+    {
+      "type": "header",
+      "content": "Buttons"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Add to cart",
+      "default": "Add to Cart"
+    },
+    {
+      "type": "text",
+      "id": "select_label",
+      "label": "Before a size is picked",
+      "default": "Select a Size"
+    },
+    {
+      "type": "text",
+      "id": "adding_label",
+      "label": "While adding",
+      "default": "Adding…"
+    },
+    {
+      "type": "text",
+      "id": "added_label",
+      "label": "After adding",
+      "default": "Added to Cart"
+    },
+    {
+      "type": "text",
+      "id": "sold_out_label",
+      "label": "Sold out",
+      "default": "Sold Out"
+    },
+    {
+      "type": "header",
+      "content": "Info tabs"
+    },
+    {
+      "type": "text",
+      "id": "tab1_label",
+      "label": "Tab 1 label",
+      "default": "Fabric & Fit",
+      "info": "Shows the product's fabric_fit metafield, or its description."
+    },
+    {
+      "type": "text",
+      "id": "tab2_label",
+      "label": "Tab 2 label",
+      "default": "Shipping"
+    },
+    {
+      "type": "richtext",
+      "id": "tab2_content",
+      "label": "Tab 2 content",
+      "info": "Same on every product. Tab is hidden until this has content."
+    },
+    {
+      "type": "text",
+      "id": "tab3_label",
+      "label": "Tab 3 label",
+      "default": "Returns"
+    },
+    {
+      "type": "richtext",
+      "id": "tab3_content",
+      "label": "Tab 3 content",
+      "info": "Same on every product. Tab is hidden until this has content."
+    },
+    {
+      "type": "header",
+      "content": "Complete the Look"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_ctl",
+      "label": "Show Complete the Look",
+      "default": true,
+      "info": "Uses the complete_the_look metafield, otherwise 2 products in other styles from the same team."
+    },
+    {
+      "type": "text",
+      "id": "ctl_heading",
+      "label": "Heading",
+      "default": "Complete the Look"
+    },
+    {
+      "type": "header",
+      "content": "More From"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_more_from",
+      "label": "Show More From",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "more_from_prefix",
+      "label": "Heading prefix",
+      "default": "More from"
+    },
+    {
+      "type": "range",
+      "id": "more_from_count",
+      "label": "Products to show",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "default": 3
+    }
+  ]
+}
+{% endschema %}

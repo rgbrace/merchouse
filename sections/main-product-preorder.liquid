@@ -1,0 +1,399 @@
+{%- comment -%}
+  Merchouse · Pre-order product page
+  Assign this template (product.preorder) to the pre-order product in Shopify admin.
+  Options: works with any option names; an option containing "fit" renders as the
+  Youth/Adult toggle, everything else renders as size pills.
+{%- endcomment -%}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign view_labels = section.settings.view_labels | split: ','
+  assign image_count = 0
+  for media in product.media
+    if media.media_type == 'image'
+      assign image_count = image_count | plus: 1
+    endif
+  endfor
+  assign subtitle = section.settings.subtitle | default: product.vendor
+  assign form_id = 'MhPdpForm-' | append: section.id
+  assign has_fit = false
+  for option in product.options_with_values
+    assign oname = option.name | downcase
+    if oname contains 'fit'
+      assign has_fit = true
+    endif
+  endfor
+-%}
+
+<section
+  class="mh-pdp"
+  id="MhPdp-{{ section.id }}"
+  data-section="{{ section.id }}"
+  data-close-date="{{ section.settings.close_date | strip | escape }}"
+  data-close-time="{{ section.settings.close_time | strip | default: '23:59' | escape }}"
+>
+  <div class="mh-pdp__grid">
+    {%- comment -%} Gallery {%- endcomment -%}
+    <div class="mh-pdp__gallery">
+      <div class="mh-pdp__gallery-inner">
+        <div class="mh-pdp__stage">
+          {%- assign img_index = 0 -%}
+          {%- for media in product.media -%}
+            {%- if media.media_type == 'image' -%}
+              <div class="mh-pdp__slide{% if img_index == 0 %} is-active{% endif %}" data-mh-view="{{ img_index }}">
+                {{
+                  media.preview_image
+                  | image_url: width: 1600
+                  | image_tag:
+                    class: 'mh-pdp__img',
+                    widths: '400, 600, 800, 1100, 1400, 1600',
+                    sizes: '(min-width: 990px) 688px, 100vw',
+                    loading: 'eager',
+                    alt: media.alt
+                }}
+              </div>
+              {%- assign img_index = img_index | plus: 1 -%}
+            {%- endif -%}
+          {%- else -%}
+            {{ 'product-apparel-1' | placeholder_svg_tag: 'mh-pdp__img mh-pdp__img--placeholder' }}
+          {%- endfor -%}
+        </div>
+
+        {%- if image_count > 1 -%}
+          <div class="mh-pdp__views" role="tablist" aria-label="Product views">
+            {%- for i in (1..image_count) -%}
+              {%- assign idx = forloop.index0 -%}
+              {%- assign label = view_labels[idx] | strip -%}
+              {%- if label == blank -%}
+                {%- capture label %}View {{ forloop.index }}{% endcapture -%}
+              {%- endif -%}
+              <button
+                type="button"
+                class="mh-pdp__view{% if forloop.first %} is-active{% endif %}"
+                data-mh-view-btn="{{ idx }}"
+                role="tab"
+                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+              >
+                {{- label | escape -}}
+              </button>
+              {%- unless forloop.last %}<span class="mh-pdp__view-sep" aria-hidden="true">|</span>{% endunless -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- comment -%} Title block (sits above the gallery on mobile) {%- endcomment -%}
+    <div class="mh-pdp__head">
+      <div class="mh-pdp__title-block">
+        <h1 class="mh-pdp__title">{{ product.title | escape }}</h1>
+        {%- if subtitle != blank -%}
+          <p class="mh-pdp__subtitle">{{ subtitle | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.fixed_details != blank -%}
+          <p class="mh-pdp__spec">{{ section.settings.fixed_details | escape }}</p>
+        {%- endif -%}
+      </div>
+      <p class="mh-pdp__price-top" data-mh-price>
+        {{- current_variant.price | money_without_trailing_zeros -}}
+      </p>
+    </div>
+
+    {%- comment -%} Details {%- endcomment -%}
+    <div class="mh-pdp__details">
+      {%- if section.settings.show_countdown and section.settings.close_date != blank -%}
+        <div class="mh-countdown" data-mh-countdown>
+          <div class="mh-countdown__top">
+            {%- if section.settings.notice_badge != blank -%}
+              <span class="mh-notice__badge">{{ section.settings.notice_badge | escape }}</span>
+            {%- endif -%}
+            <span class="mh-countdown__label" data-mh-cd-open>{{ section.settings.countdown_label | escape }}</span>
+            <span class="mh-countdown__label" data-mh-cd-closed hidden>{{ section.settings.closed_message | escape }}</span>
+          </div>
+          <div class="mh-countdown__units" data-mh-cd-units role="timer" aria-live="off">
+            {%- assign units = 'd:Days,h:Hrs,m:Min,s:Sec' | split: ',' -%}
+            {%- for unit in units -%}
+              {%- assign parts = unit | split: ':' -%}
+              <div class="mh-countdown__unit">
+                <span class="mh-countdown__num" data-mh-cd="{{ parts[0] }}">--</span>
+                <span class="mh-countdown__cap">{{ parts[1] }}</span>
+              </div>
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- form 'product', product, id: form_id, class: 'mh-pdp__form', novalidate: 'novalidate' -%}
+        <input type="hidden" name="id" value="{{ current_variant.id }}" data-mh-variant-id>
+        <input type="hidden" name="quantity" value="1">
+        {%- if section.settings.go_to_checkout -%}
+          <input type="hidden" name="return_to" value="/checkout">
+        {%- endif -%}
+
+        {%- unless product.has_only_default_variant -%}
+          {%- for option in product.options_with_values -%}
+            {%- assign oname = option.name | downcase -%}
+            {%- assign option_index = forloop.index0 -%}
+            <fieldset class="mh-opt" data-mh-option="{{ option_index }}">
+              <legend class="mh-opt__label">{{ option.name | escape }}</legend>
+              {%- if oname contains 'fit' -%}
+                <div class="mh-fit">
+                  {%- for value in option.values -%}
+                    <button
+                      type="button"
+                      class="mh-fit__btn{% if option.selected_value == value %} is-selected{% endif %}"
+                      data-mh-value="{{ value | escape }}"
+                      aria-pressed="{% if option.selected_value == value %}true{% else %}false{% endif %}"
+                    >
+                      {{- value | escape -}}
+                    </button>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="mh-sizes">
+                  {%- for value in option.values -%}
+                    <button
+                      type="button"
+                      class="mh-size"
+                      data-mh-value="{{ value | escape }}"
+                      aria-pressed="false"
+                    >
+                      {{- value | escape -}}
+                    </button>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            </fieldset>
+          {%- endfor -%}
+
+          <noscript>
+            <label class="mh-opt__label" for="MhNoJsVariant-{{ section.id }}">Option</label>
+            <select id="MhNoJsVariant-{{ section.id }}" name="id" class="mh-field__input">
+              {%- for v in product.variants -%}
+                <option value="{{ v.id }}" {% unless v.available %}disabled{% endunless %}>
+                  {{- v.title | escape }} – {{ v.price | money_without_trailing_zeros -}}
+                </option>
+              {%- endfor -%}
+            </select>
+          </noscript>
+        {%- endunless -%}
+
+        <div class="mh-buy">
+          <p class="mh-buy__price" data-mh-price>{{ current_variant.price | money_without_trailing_zeros }}</p>
+          <button
+            type="submit"
+            name="add"
+            class="mh-btn mh-btn--green mh-buy__btn"
+            data-mh-buy
+            {% if product.has_only_default_variant == false %}
+              disabled
+            {% endif %}
+          >
+            {%- if product.has_only_default_variant -%}
+              {{- section.settings.button_label | escape -}}
+            {%- else -%}
+              {{- section.settings.select_label | escape -}}
+            {%- endif -%}
+          </button>
+        </div>
+        <p class="mh-buy__msg" data-mh-msg role="status" aria-live="polite"></p>
+      {%- endform -%}
+
+      {%- comment -%} Info tabs {%- endcomment -%}
+      <div class="mh-tabs" data-mh-tabs>
+        <div class="mh-tabs__bar" role="tablist">
+          {%- if section.settings.tab1_label != blank -%}
+            <button type="button" class="mh-tabs__tab is-active" role="tab" aria-selected="true" data-mh-tab="1">
+              {{- section.settings.tab1_label | escape -}}
+            </button>
+          {%- endif -%}
+          {%- if section.settings.tab2_label != blank and section.settings.tab2_content != blank -%}
+            <button type="button" class="mh-tabs__tab" role="tab" aria-selected="false" data-mh-tab="2">
+              {{- section.settings.tab2_label | escape -}}
+            </button>
+          {%- endif -%}
+          {%- if section.settings.tab3_label != blank and section.settings.tab3_content != blank -%}
+            <button type="button" class="mh-tabs__tab" role="tab" aria-selected="false" data-mh-tab="3">
+              {{- section.settings.tab3_label | escape -}}
+            </button>
+          {%- endif -%}
+        </div>
+        <div class="mh-tabs__panel rte" role="tabpanel" data-mh-panel="1">{{ product.description }}</div>
+        {%- if section.settings.tab2_content != blank -%}
+          <div class="mh-tabs__panel rte" role="tabpanel" data-mh-panel="2" hidden>
+            {{- section.settings.tab2_content -}}
+          </div>
+        {%- endif -%}
+        {%- if section.settings.tab3_content != blank -%}
+          <div class="mh-tabs__panel rte" role="tabpanel" data-mh-panel="3" hidden>
+            {{- section.settings.tab3_content -}}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" data-mh-variants>
+    [
+      {%- for v in product.variants -%}
+        {"id":{{ v.id }},"available":{{ v.available }},"options":{{ v.options | json }},"price":{{ v.price | money_without_trailing_zeros | json }}}
+        {%- unless forloop.last %},{% endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+  <script type="application/json" data-mh-labels>
+    {
+      "buy": {{ section.settings.button_label | json }},
+      "select": {{ section.settings.select_label | json }},
+      "soldOut": {{ section.settings.sold_out_label | json }},
+      "closed": {{ section.settings.closed_label | json }},
+      "hasFit": {{ has_fit }}
+    }
+  </script>
+</section>
+
+<script src="{{ 'merchouse-preorder.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Pre-order product",
+  "tag": "div",
+  "class": "mh-pdp-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Product details"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "info": "e.g. GEORGETOWN HS | TENNIS. Leave empty to show the product vendor."
+    },
+    {
+      "type": "text",
+      "id": "fixed_details",
+      "label": "Extra line under subtitle",
+      "info": "Optional. Leave empty to hide."
+    },
+    {
+      "type": "text",
+      "id": "view_labels",
+      "label": "Image labels",
+      "default": "Front,Back",
+      "info": "Comma separated, in the same order as the product images."
+    },
+    {
+      "type": "header",
+      "content": "Countdown"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_countdown",
+      "label": "Show countdown",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "close_date",
+      "label": "Orders close on (date)",
+      "info": "Format YYYY-MM-DD, e.g. 2026-11-20. The countdown only shows once this is set."
+    },
+    {
+      "type": "text",
+      "id": "close_time",
+      "label": "Orders close at (time, Central)",
+      "default": "23:59",
+      "info": "24-hour format, e.g. 17:00 for 5 PM. At this time the button switches to the closed label."
+    },
+    {
+      "type": "text",
+      "id": "notice_badge",
+      "label": "Badge",
+      "default": "PRE-ORDER"
+    },
+    {
+      "type": "text",
+      "id": "countdown_label",
+      "label": "Countdown label",
+      "default": "Orders close in"
+    },
+    {
+      "type": "text",
+      "id": "closed_message",
+      "label": "Message after orders close",
+      "default": "Pre-orders are closed."
+    },
+    {
+      "type": "header",
+      "content": "Buttons"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Pre-order Now"
+    },
+    {
+      "type": "text",
+      "id": "select_label",
+      "label": "Label before a size is picked",
+      "default": "Select a Size"
+    },
+    {
+      "type": "text",
+      "id": "sold_out_label",
+      "label": "Sold out label",
+      "default": "Sold Out"
+    },
+    {
+      "type": "text",
+      "id": "closed_label",
+      "label": "Closed label",
+      "default": "Pre-orders Closed"
+    },
+    {
+      "type": "checkbox",
+      "id": "go_to_checkout",
+      "label": "Go straight to checkout after adding",
+      "info": "Off: shoppers land on the cart, so they can add more sizes before checking out.",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Info tabs"
+    },
+    {
+      "type": "text",
+      "id": "tab1_label",
+      "label": "Tab 1 label",
+      "default": "Fabric & Fit",
+      "info": "Shows the product description."
+    },
+    {
+      "type": "text",
+      "id": "tab2_label",
+      "label": "Tab 2 label",
+      "default": "Shipping"
+    },
+    {
+      "type": "richtext",
+      "id": "tab2_content",
+      "label": "Tab 2 content",
+      "info": "Tab is hidden until this has content."
+    },
+    {
+      "type": "text",
+      "id": "tab3_label",
+      "label": "Tab 3 label",
+      "default": "Returns"
+    },
+    {
+      "type": "richtext",
+      "id": "tab3_content",
+      "label": "Tab 3 content",
+      "info": "Tab is hidden until this has content."
+    }
+  ]
+}
+{% endschema %}
