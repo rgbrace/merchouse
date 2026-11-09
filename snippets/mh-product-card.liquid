@@ -7,7 +7,7 @@
       assign color_opt = o
     endif
   endfor
-  assign style_count = p.metafields.custom.style_siblings.value.size | default: 0
+  assign style_count = p.metafields.merchouse.sibling_products.value.size | default: p.metafields.custom.style_siblings.value.size | default: 0
 -%}
 <a class="mh-card" href="{{ p.url }}">
   <span class="mh-card__media">
@@ -24,7 +24,7 @@
       {%- endfor -%}
     </span>
   {%- endif -%}
-  <span class="mh-card__title">{{ p.title | escape }}</span>
+  <span class="mh-card__title">{{ p.title | split: ' – ' | first | escape }}</span>
   <span class="mh-card__price">{{ p.price | money_without_trailing_zeros }}</span>
   {%- if style_count > 1 -%}
     <span class="mh-card__styles">Available in {{ style_count }} styles</span>

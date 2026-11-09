@@ -7,16 +7,18 @@
   - Each style (T-Shirt, Hooded, …) is its own product, linked with the
     custom.style_siblings metafield (list of products).
 
-  Product metafields (namespace "custom"), all optional:
-    style               single line text   e.g. "T-Shirt" (falls back to product type)
-    style_siblings      list of products   every style version of this design
-    team_label          single line text   e.g. "GEORGETOWN HS | TENNIS" (falls back to vendor)
-    giveback_recipient  single line text   e.g. "Georgetown Tennis" (falls back to vendor)
-    giveback_flat       decimal            flat dollars back, e.g. 5 (premium brands)
-    giveback_percent    integer            overrides the theme default (20)
-    fabric_fit          rich text          Fabric & Fit tab (falls back to description)
-    complete_the_look   list of products   hand-picked pairings (else automatic)
-    team_collection     collection         "More From" source (else first collection)
+  Data model (see MERCHOUSE-SETUP.md):
+    merchouse.team              Team entry → its Organization. Sets the
+                                "GEORGETOWN HS | TENNIS" label, the give-back
+                                name and the More From collection.
+    merchouse.style             Style entry (Tee, Hoodie…) for the style row
+    merchouse.sibling_products  every style version of this design
+    merchouse.giveback_flat     flat dollars back (premium brands)
+    merchouse.fabric_fit        Fabric & Fit tab (falls back to description)
+    merchouse.complete_the_look hand-picked pairings (else automatic)
+  Older custom.* fields (style, style_siblings, team_label, giveback_recipient,
+  giveback_flat, giveback_percent, fabric_fit, complete_the_look,
+  team_collection) still work as fallbacks.
 
   Images: put the color name in each image's alt text ("Ice Blue front",
   "Ice Blue back") so the gallery follows the selected color. Alt text that
@@ -31,11 +33,30 @@
     assign preselect = true
   endif
 
-  assign style_name = mf.style.value | default: product.type | default: 'T-Shirt'
-  assign team_label = mf.team_label.value | default: product.vendor
-  assign recipient = mf.giveback_recipient.value | default: product.vendor
+  # Merchouse data model: product → Team (metaobject) → Organization (metaobject).
+  # merchouse.* fields win; the older custom.* fields still work as fallbacks.
+  assign mh = product.metafields.merchouse
+  assign team = mh.team.value
+  assign org = team.school.value
+
+  assign style_name = mh.style.value.name.value | default: mf.style.value | default: product.type | default: 'T-Shirt'
+  assign siblings = mh.sibling_products.value | default: mf.style_siblings.value
+
+  # Title without the " – Style" suffix used to keep admin titles unique.
+  assign display_title = product.title | split: ' – ' | first | split: ' - ' | first
+
+  if team
+    assign org_name = org.name.value | default: org.short_name.value
+    assign team_label = org_name | append: ' | ' | append: team.name.value
+    assign fallback_recipient = org.short_name.value | default: org_name | append: ' ' | append: team.name.value
+    assign recipient = team.giveback_name.value | default: fallback_recipient
+  else
+    assign team_label = mf.team_label.value | default: product.vendor
+    assign recipient = mf.giveback_recipient.value | default: product.vendor
+  endif
+
   assign gb_percent = mf.giveback_percent.value | default: settings.mh_giveback_percent | default: 20
-  assign gb_flat = mf.giveback_flat.value | default: 0
+  assign gb_flat = mh.giveback_flat.value | default: mf.giveback_flat.value | default: 0
   if gb_flat > 0
     assign gb_cents = gb_flat | times: 100 | round
   else
@@ -54,11 +75,11 @@
   endfor
 
   assign sibling_ids = product.id | append: ','
-  for sib in mf.style_siblings.value
+  for sib in siblings
     assign sibling_ids = sibling_ids | append: sib.id | append: ','
   endfor
 
-  assign team_collection = mf.team_collection.value
+  assign team_collection = team.collection.value | default: mf.team_collection.value
   if team_collection == blank
     for c in product.collections
       unless c.handle == 'all' or c.handle == 'frontpage'
@@ -128,7 +149,7 @@
     {%- comment -%} ---------- Title block ---------- {%- endcomment -%}
     <div class="mh-pdp__head">
       <div class="mh-pdp__title-block">
-        <h1 class="mh-pdp__title">{{ product.title | escape }}</h1>
+        <h1 class="mh-pdp__title">{{ display_title | escape }}</h1>
         {%- if team_label != blank -%}
           <p class="mh-pdp__subtitle">{{ team_label | escape }}</p>
         {%- endif -%}
@@ -175,7 +196,7 @@
 
             {%- if section.settings.show_styles -%}
               {%- comment -%} Style row sits right after Color, like the Figma file. {%- endcomment -%}
-              {%- render 'mh-style-row', product: product, style_name: style_name, siblings: mf.style_siblings.value -%}
+              {%- render 'mh-style-row', product: product, style_name: style_name, siblings: siblings -%}
             {%- endif -%}
 
           {%- elsif oi == fit_index -%}
@@ -215,7 +236,7 @@
         {%- endfor -%}
 
         {%- if section.settings.show_styles and color_index == -1 -%}
-          {%- render 'mh-style-row', product: product, style_name: style_name, siblings: mf.style_siblings.value -%}
+          {%- render 'mh-style-row', product: product, style_name: style_name, siblings: siblings -%}
         {%- endif -%}
 
         <noscript>
@@ -239,7 +260,9 @@
       {%- endform -%}
 
       {%- comment -%} Tabs {%- endcomment -%}
-      {%- if mf.fabric_fit != blank -%}
+      {%- if mh.fabric_fit != blank -%}
+        {%- assign fabric = mh.fabric_fit | metafield_tag -%}
+      {%- elsif mf.fabric_fit != blank -%}
         {%- assign fabric = mf.fabric_fit | metafield_tag -%}
       {%- else -%}
         {%- assign fabric = product.description -%}
@@ -273,7 +296,7 @@
       {%- if section.settings.show_ctl -%}
         {%- liquid
           assign ctl_count = 0
-          assign picks = mf.complete_the_look.value
+          assign picks = mh.complete_the_look.value | default: mf.complete_the_look.value
         -%}
         {%- capture ctl_html -%}
           {%- if picks != blank -%}
@@ -289,7 +312,7 @@
               {%- assign pid = p.id | append: ',' -%}
               {%- if sibling_ids contains pid -%}{%- continue -%}{%- endif -%}
               {%- unless p.available -%}{%- continue -%}{%- endunless -%}
-              {%- assign p_style = p.metafields.custom.style.value | default: p.type | downcase -%}
+              {%- assign p_style = p.metafields.merchouse.style.value.name.value | default: p.metafields.custom.style.value | default: p.type | downcase -%}
               {%- if p_style == my_style -%}{%- continue -%}{%- endif -%}
               {%- render 'mh-ctl-card', p: p -%}
               {%- assign ctl_count = ctl_count | plus: 1 -%}

@@ -1,36 +1,55 @@
-# Merchouse theme – product setup
+# Merchouse theme – store setup
 
 Shopify theme for merchouse.co, built on Dawn with a Merchouse layer
 (`assets/merchouse*.css|js`, `sections/main-product-merchouse.liquid`,
 `sections/main-product-preorder.liquid`, `sections/coming-soon.liquid`, `snippets/mh-*`).
 
-## Product structure
+## Hierarchy
 
-- **One product per design per style.** "Fresh Bagels – T-Shirt" and
-  "Fresh Bagels – Hooded" are separate products.
-- **Options (3 max):** `Color`, `Fit` (Adult, Youth), `Size` (XS–3X).
+```
+Organization (school, club, business, church)   e.g. Georgetown HS
+ └─ Team                                         e.g. Tennis
+     └─ Products, one per design per style       e.g. Fresh Bagels – Tee
+```
+
+### Organization (Content → Metaobjects → Organization)
+Name, short name (GHS), type, mascot, logo, primary/secondary color, collection.
+Internal type handle is `school` (kept from the first version).
+
+### Team (Content → Metaobjects → Team)
+Name (Tennis), organization, give-back name ("Georgetown Tennis"), collection, logo, about text.
+
+### Collections
+- **Team collection** (e.g. `georgetown-hs-tennis`): automated, includes products whose
+  **Team** field equals that team. Products appear here as soon as their Team is set.
+- **Organization collection** (e.g. `georgetown-hs`): built from its team collections
+  (sub-collections). When you add a team, add its collection to the organization's collection.
+- Link each collection back on its Organization/Team entry (Collection field).
+- New collections must be published to the Online Store sales channel.
+
+## Products
+
+- **One product per design per style.** Title them `Design – Style`
+  (e.g. "Fresh Bagels – Hoodie"); the page shows only "Fresh Bagels".
+- **Options (3 max):** `Color`, `Fit` (Adult, Youth), `Size`.
   Delete combinations that don't exist (e.g. Adult / XS, Youth / 2X).
-- **Template:** `product` (default) for regular products, `product.preorder`
-  for pre-orders.
-- **Images:** include the color in the alt text, plus "back" for back views,
-  e.g. `Ice Blue front`, `Ice Blue back`. The gallery follows the selected color.
+- **Template:** `product` (default) for regular products, `product.preorder` for pre-orders.
+- **Images:** 2000 × 2000 px squares; alt text = color + view, e.g. `Ice Blue front`, `Ice Blue back`.
 
-## Metafield definitions
+### Product fields (namespace `merchouse`)
 
-Settings → Custom data → Products → Add definition. Namespace and key must match.
-
-| Name | Namespace and key | Type | Used for |
+| Field | Key | Type | Notes |
 |---|---|---|---|
-| Style | `custom.style` | Single line text | Style name, e.g. T-Shirt (falls back to product type) |
-| Style siblings | `custom.style_siblings` | Product (list) | Style row; list every style version of the design |
-| Team label | `custom.team_label` | Single line text | "GEORGETOWN HS \| TENNIS" under the title (falls back to vendor) |
-| Give-back recipient | `custom.giveback_recipient` | Single line text | "$5 back to …" (falls back to vendor) |
-| Give-back flat | `custom.giveback_flat` | Decimal | Flat dollars back (premium brands); blank = theme % |
-| Give-back percent | `custom.giveback_percent` | Integer | Overrides the default % for one product |
-| Fabric & Fit | `custom.fabric_fit` | Rich text | Fabric & Fit tab (falls back to description) |
-| Complete the look | `custom.complete_the_look` | Product (list) | Hand-picked pairings; blank = automatic |
-| Team collection | `custom.team_collection` | Collection | "More from"; blank = product's first collection |
+| Team | `merchouse.team` | Team entry | Sets label, give-back name, More From and collections |
+| Style | `merchouse.style` | Style entry | Style row name and icon |
+| Sibling products | `merchouse.sibling_products` | Product list | Every style version of the design, in display order |
+| Default color | `merchouse.default_color` | Text | (reserved) |
+| Give-back flat amount | `merchouse.giveback_flat` | Decimal | Premium brands; empty = theme default % |
+| Fabric & Fit | `merchouse.fabric_fit` | Rich text | Empty = product description |
+| Complete the look | `merchouse.complete_the_look` | Product list | Empty = automatic |
 
-Store-wide settings: Online Store → Themes → Customize → Theme settings → **Merchouse**
-(default give-back %, swatch colors). Shipping and Returns tab text: product page →
-Merchouse product section.
+Swatch colors come from Shopify's own option swatches, then **Garment Color** entries
+(name + hex), then Theme settings → Merchouse → Swatch colors.
+
+Store-wide: Theme settings → **Merchouse** (default give-back %, swatch colors).
+Shipping and Returns tab text: product page → Merchouse product section.
