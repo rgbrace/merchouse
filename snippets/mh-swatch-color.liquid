@@ -1,8 +1,9 @@
 {%- comment -%}
   Outputs a CSS color for a Color option value.
   1) Shopify's own swatch color (set on the option value in admin), else
-  2) Theme settings → Merchouse → Swatch colors ("Name: #hex" per line), else
-  3) the value itself (works for plain names like "Black").
+  2) a Garment Color entry (Content → Metaobjects → Garment Color) with the same name, else
+  3) Theme settings → Merchouse → Swatch colors ("Name: #hex" per line), else
+  4) the value itself (works for plain names like "Black").
 {%- endcomment -%}
 {%- liquid
   assign out = ''
@@ -10,6 +11,15 @@
     assign out = value.swatch.color
   else
     assign want = value | append: '' | downcase | strip
+    for gc in shop.metaobjects.garment_color.values
+      assign gc_name = gc.name.value | downcase | strip
+      if gc_name == want
+        assign out = gc.hex.value
+        break
+      endif
+    endfor
+  endif
+  if out == ''
     assign lines = settings.mh_swatch_map | newline_to_br | split: '<br />'
     for line in lines
       assign pair = line | split: ':'

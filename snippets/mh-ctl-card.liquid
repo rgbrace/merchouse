@@ -13,7 +13,7 @@
       {{ 'product-apparel-2' | placeholder_svg_tag: 'mh-ctl__placeholder' }}
     {%- endif -%}
   </a>
-  <a href="{{ p.url }}" class="mh-ctl__title">{{ p.title | escape }}</a>
+  <a href="{{ p.url }}" class="mh-ctl__title">{{ p.title | split: ' – ' | first | escape }}</a>
   <p class="mh-ctl__price">{{ p.price | money_without_trailing_zeros }}</p>
   {%- if single and p.available -%}
     <button type="button" class="mh-btn mh-btn--small mh-btn--ghost" data-mh-quick-add="{{ p.selected_or_first_available_variant.id }}">Add to Cart</button>

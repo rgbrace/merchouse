@@ -1,5 +1,5 @@
 {%- comment -%}
-  Style picker: links between style versions of one design (custom.style_siblings).
+  Style picker: links between style versions of one design (merchouse.sibling_products).
   Params: product, style_name, siblings (list of products, may include this product).
 {%- endcomment -%}
 {%- liquid
@@ -23,7 +23,7 @@
         </li>
       {%- endunless -%}
       {%- for sib in siblings -%}
-        {%- assign sib_style = sib.metafields.custom.style.value | default: sib.type | default: sib.title -%}
+        {%- assign sib_style = sib.metafields.merchouse.style.value.name.value | default: sib.metafields.custom.style.value | default: sib.type | default: sib.title -%}
         <li>
           {%- if sib.id == product.id -%}
             <span class="mh-style is-selected" aria-current="true">
