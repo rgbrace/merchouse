@@ -959,6 +959,9 @@ details-modal.header__search {
 .mh-pdp__stage[data-zoom='lens'] {
   cursor: zoom-in;
 }
+.mh-pdp__stage .mh-zoom {
+  display: block; /* Dawn hides empty divs */
+}
 .mh-zoom {
   position: absolute;
   pointer-events: none;
