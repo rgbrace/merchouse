@@ -146,14 +146,18 @@
     // ----- render state -----
     function setButton(state, v) {
       if (!buyBtn) return;
-      buyBtn.classList.toggle('is-loading', state === 'adding');
-      buyBtn.classList.toggle('is-added', state === 'added');
-      if (state === 'adding') { buyBtn.disabled = true; buyBtn.textContent = labels.adding || 'Adding…'; return; }
-      if (state === 'added') { buyBtn.disabled = false; buyBtn.textContent = labels.added || 'Added to Cart'; return; }
-      if (!v) { buyBtn.disabled = true; buyBtn.textContent = labels.select || 'Select a Size'; return; }
-      if (!v.available) { buyBtn.disabled = true; buyBtn.textContent = labels.soldOut || 'Sold Out'; return; }
-      buyBtn.disabled = false;
-      buyBtn.textContent = labels.buy || 'Add to Cart';
+      var name = state;
+      if (state === 'idle') name = !v ? 'select' : (!v.available ? 'soldout' : 'ready');
+      buyBtn.setAttribute('data-state', name);
+      buyBtn.classList.toggle('is-loading', name === 'adding');
+      buyBtn.disabled = name !== 'ready' && name !== 'added';
+      buyBtn.textContent = {
+        adding: labels.adding || 'Adding…',
+        added: labels.added || 'Added to Cart',
+        select: labels.select || 'Select a Size',
+        soldout: labels.soldOut || 'Sold Out',
+        ready: labels.buy || 'Add to Cart',
+      }[name];
     }
 
     function render() {
