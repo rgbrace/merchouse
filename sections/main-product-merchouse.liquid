@@ -105,7 +105,12 @@
     {%- comment -%} ---------- Gallery ---------- {%- endcomment -%}
     <div class="mh-pdp__gallery">
       <div class="mh-pdp__gallery-inner">
-        <div class="mh-pdp__stage" data-mh-stage>
+        <div
+          class="mh-pdp__stage"
+          data-mh-stage
+          data-zoom="{{ section.settings.zoom_style }}"
+          data-zoom-scale="{{ section.settings.zoom_scale }}"
+        >
           {%- assign img_index = 0 -%}
           {%- for media in product.media -%}
             {%- if media.media_type == 'image' -%}
@@ -115,6 +120,7 @@
                 data-mh-media="{{ media.id }}"
                 data-alt="{{ alt | escape }}"
                 data-back="{% if alt contains 'back' %}true{% else %}false{% endif %}"
+                data-zoom-src="{{ media.preview_image | image_url: width: 2400 }}"
               >
                 {{
                   media.preview_image
@@ -411,6 +417,28 @@
       "id": "back_label",
       "label": "Back image label",
       "default": "Back"
+    },
+    {
+      "type": "select",
+      "id": "zoom_style",
+      "label": "Image zoom (desktop)",
+      "options": [
+        { "value": "inplace", "label": "Zoom in place" },
+        { "value": "lens", "label": "Magnifier lens" },
+        { "value": "off", "label": "Off" }
+      ],
+      "default": "inplace",
+      "info": "Hover over the product image on desktop to see detail. Upload 2000px images for the sharpest zoom."
+    },
+    {
+      "type": "range",
+      "id": "zoom_scale",
+      "label": "Zoom level",
+      "min": 15,
+      "max": 30,
+      "step": 1,
+      "default": 22,
+      "info": "15 = 1.5×, 30 = 3×"
     },
     {
       "type": "header",
