@@ -292,6 +292,7 @@
     });
 
     render();
+    initZoom(root);
 
     // Keep the current style visible in the scrolling style row.
     var row = root.querySelector('.mh-styles__row');
@@ -300,6 +301,66 @@
       var li = cur.closest('li');
       row.scrollLeft = Math.max(0, li.offsetLeft - row.offsetLeft - row.clientWidth / 2 + li.offsetWidth / 2);
     }
+  }
+
+  // ---------- Image zoom (desktop, mouse only) ----------
+  function initZoom(root) {
+    var stage = root.querySelector('[data-mh-stage]');
+    if (!stage) return;
+    var mode = stage.getAttribute('data-zoom');
+    if (mode !== 'inplace' && mode !== 'lens') return;
+    var canHover = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 990px)');
+    var scale = (parseFloat(stage.getAttribute('data-zoom-scale')) || 22) / 10;
+    var pane = document.createElement('div');
+    pane.className = 'mh-zoom mh-zoom--' + mode;
+    pane.setAttribute('aria-hidden', 'true');
+    stage.appendChild(pane);
+    var active = null;
+
+    function activeImage() {
+      var slide = stage.querySelector('.mh-pdp__slide.is-active');
+      return slide ? { slide: slide, img: slide.querySelector('img') } : null;
+    }
+    function start() {
+      if (!canHover.matches) return false;
+      active = activeImage();
+      if (!active || !active.img) return false;
+      var src = active.slide.getAttribute('data-zoom-src') || active.img.currentSrc || active.img.src;
+      pane.style.backgroundImage = 'url("' + src + '")';
+      return true;
+    }
+    function move(e) {
+      if (!active) return;
+      var r = active.img.getBoundingClientRect();
+      var s = stage.getBoundingClientRect();
+      var x = Math.min(Math.max(e.clientX - r.left, 0), r.width);
+      var y = Math.min(Math.max(e.clientY - r.top, 0), r.height);
+      var bw = r.width * scale, bh = r.height * scale;
+      pane.style.backgroundSize = bw + 'px ' + bh + 'px';
+      if (mode === 'inplace') {
+        // Map the cursor across the whole enlarged image.
+        var px = (x / r.width) * (bw - s.width);
+        var py = (y / r.height) * (bh - s.height);
+        pane.style.backgroundPosition = -px + 'px ' + -py + 'px';
+      } else {
+        var lw = pane.offsetWidth, lh = pane.offsetHeight;
+        pane.style.left = (e.clientX - s.left) + 'px';
+        pane.style.top = (e.clientY - s.top) + 'px';
+        pane.style.backgroundPosition = -(x * scale - lw / 2) + 'px ' + -(y * scale - lh / 2) + 'px';
+      }
+    }
+    stage.addEventListener('mouseenter', function (e) {
+      if (start()) { move(e); pane.classList.add('is-on'); }
+    });
+    stage.addEventListener('mousemove', function (e) {
+      if (!active && !start()) return;
+      move(e);
+      pane.classList.add('is-on');
+    });
+    stage.addEventListener('mouseleave', function () {
+      pane.classList.remove('is-on');
+      active = null;
+    });
   }
 
   function boot() { document.querySelectorAll('.mh-pdp--full').forEach(init); }
