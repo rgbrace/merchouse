@@ -185,6 +185,7 @@
             name="add"
             class="mh-btn mh-btn--green mh-buy__btn"
             data-mh-buy
+            data-state="{% if product.has_only_default_variant %}ready{% else %}select{% endif %}"
             {% if product.has_only_default_variant == false %}
               disabled
             {% endif %}

@@ -708,10 +708,20 @@ details-modal.header__search {
   padding: 0 var(--mh-space-8);
   font: var(--mh-type-button-xl);
 }
-.mh-buy__btn:disabled {
-  background: var(--mh-amber);
-  color: var(--mh-tiber);
+/* Button states follow the Figma "Buy Button" component */
+.mh-buy__btn[data-state='select'] {
+  background: var(--mh-tiber);
+  color: var(--mh-white);
+  cursor: default;
+}
+.mh-buy__btn[data-state='soldout'],
+.mh-buy__btn[data-state='closed'] {
+  background: var(--mh-linen);
+  color: var(--mh-sky);
   cursor: not-allowed;
+}
+.mh-buy__btn[data-state='added'] {
+  background: var(--mh-tiber);
 }
 .mh-buy__btn.is-loading {
   opacity: 0.7;
@@ -839,13 +849,6 @@ details-modal.header__search {
   .mh-buy__btn {
     min-height: 55px;
     font: var(--mh-type-button-xl);
-    background: var(--mh-tiber);
-  }
-  .mh-buy__btn:hover:not(:disabled) {
-    background: #0a4752;
-  }
-  .mh-buy__btn:disabled {
-    background: var(--mh-amber);
   }
   .mh-countdown__num {
     font-size: 24px;
@@ -1013,9 +1016,6 @@ a.mh-style:focus-visible {
 }
 .mh-btn--ghost:hover {
   background: var(--mh-linen);
-}
-.mh-buy__btn.is-added {
-  background: var(--mh-tiber);
 }
 
 /* Complete the Look */

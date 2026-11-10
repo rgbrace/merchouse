@@ -252,7 +252,7 @@
 
         <div class="mh-buy">
           <p class="mh-buy__price" data-mh-price>{{ current_variant.price | money_without_trailing_zeros }}</p>
-          <button type="submit" name="add" class="mh-btn mh-btn--green mh-buy__btn" data-mh-buy disabled>
+          <button type="submit" name="add" class="mh-btn mh-btn--green mh-buy__btn" data-mh-buy data-state="select" disabled>
             {{- section.settings.select_label | escape -}}
           </button>
         </div>

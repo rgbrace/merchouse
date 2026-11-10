@@ -102,15 +102,19 @@
 
       if (closed) {
         buyBtn.disabled = true;
+        buyBtn.setAttribute('data-state', 'closed');
         buyBtn.textContent = labels.closed || 'Pre-orders Closed';
       } else if (!v) {
         buyBtn.disabled = true;
+        buyBtn.setAttribute('data-state', 'select');
         buyBtn.textContent = labels.select || 'Select a Size';
       } else if (!v.available) {
         buyBtn.disabled = true;
+        buyBtn.setAttribute('data-state', 'soldout');
         buyBtn.textContent = labels.soldOut || 'Sold Out';
       } else {
         buyBtn.disabled = false;
+        buyBtn.setAttribute('data-state', 'ready');
         buyBtn.textContent = labels.buy || 'Pre-order Now';
       }
     }
