@@ -20,7 +20,8 @@
   {%- if color_opt -%}
     <span class="mh-card__dots" aria-label="{{ color_opt.values.size }} colors">
       {%- for value in color_opt.values limit: 5 -%}
-        <span class="mh-card__dot" style="--swatch: {% render 'mh-swatch-color', value: value %};" title="{{ value | escape }}"></span>
+        {%- assign vlow = value | downcase -%}
+        <span class="mh-card__dot{% if vlow contains 'heather' or vlow contains 'tri-blend' %} is-heather{% endif %}" style="--swatch: {% render 'mh-swatch-color', value: value %};" title="{{ value | escape }}"></span>
       {%- endfor -%}
     </span>
   {%- endif -%}
