@@ -40,6 +40,7 @@
             assign live = true
           endif
         -%}
+        <!-- mhdbg col={{ col.handle }} pc={{ col.products_count }} n={{ col.products.size }} first={{ col.products.first.handle }} sibs={{ col.products.first.metafields.merchouse.sibling_products.value.size }} sib0={{ col.products.first.metafields.merchouse.sibling_products.value.first.id }} pid={{ col.products.first.id }} d={{ designs }} -->
         <li class="mh-school{% unless live %} is-soon{% endunless %}">
           <div class="mh-school__info">
             <h2 class="mh-school__name">{{ school.name.value | default: school.system.handle | escape }}</h2>
