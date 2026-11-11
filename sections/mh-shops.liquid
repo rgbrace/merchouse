@@ -29,8 +29,14 @@
           assign designs = 0
           if col
             for p in col.products
-              assign sibs = p.metafields.merchouse.sibling_products.value
-              if sibs == blank or sibs.first.id == p.id
+              # a design = the first product in its sibling list (or a product with no siblings);
+              # read the list with a loop: .first is empty on metafield list values
+              assign lead = p
+              for sib in p.metafields.merchouse.sibling_products.value
+                assign lead = sib
+                break
+              endfor
+              if lead.id == p.id
                 assign designs = designs | plus: 1
               endif
             endfor
@@ -40,7 +46,6 @@
             assign live = true
           endif
         -%}
-        <!-- mhdbg col={{ col.handle }} pc={{ col.products_count }} n={{ col.products.size }} first={{ col.products.first.handle }} sibs={{ col.products.first.metafields.merchouse.sibling_products.value.size }} sib0={{ col.products.first.metafields.merchouse.sibling_products.value.first.id }} pid={{ col.products.first.id }} d={{ designs }} -->
         <li class="mh-school{% unless live %} is-soon{% endunless %}">
           <div class="mh-school__info">
             <h2 class="mh-school__name">{{ school.name.value | default: school.system.handle | escape }}</h2>
