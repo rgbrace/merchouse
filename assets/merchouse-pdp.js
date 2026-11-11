@@ -101,6 +101,18 @@
       }
       return true;
     }
+    // Does any variant come in this color for the chosen fit (and any other non-size option)?
+    // Size is ignored so a color isn't hidden just because one size is missing.
+    function colorOffered(val) {
+      return variants.some(function (v) {
+        if (v.options[colorIndex] !== val) return false;
+        for (var k = 0; k < optionCount; k++) {
+          if (k === colorIndex || kinds[k] === 'size' || selected[k] == null) continue;
+          if (v.options[k] !== selected[k]) return false;
+        }
+        return true;
+      });
+    }
     function currentVariant() {
       for (var i = 0; i < optionCount; i++) if (selected[i] == null) return null;
       for (var j = 0; j < variants.length; j++) if (matches(variants[j], -1)) return variants[j];
@@ -173,6 +185,9 @@
           } else {
             btn.classList.toggle('is-unavailable', !available);
           }
+          // Colors the chosen fit doesn't come in (e.g. a tri-blend color with no youth blank) are
+          // removed rather than faded; sold-out colors stay visible but faded.
+          if (kind === 'color') btn.hidden = !colorOffered(val);
           var on = selected[i] === val;
           btn.classList.toggle('is-selected', on);
           btn.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -228,6 +243,12 @@
         var btn = e.target.closest('[data-mh-value]');
         if (!btn || btn.disabled) return;
         selected[i] = btn.getAttribute('data-mh-value');
+        // Switching fit to one the current color doesn't come in: move to the first color it does.
+        if (colorIndex > -1 && i !== colorIndex && selected[colorIndex] != null && !colorOffered(selected[colorIndex])) {
+          var colorFs = root.querySelector('[data-mh-option="' + colorIndex + '"]');
+          var next = colorFs && Array.prototype.find.call(colorFs.querySelectorAll('[data-mh-value]'), function (b) { return colorOffered(b.getAttribute('data-mh-value')); });
+          selected[colorIndex] = next ? next.getAttribute('data-mh-value') : null;
+        }
         // Drop a size the new color/fit doesn't come in.
         for (var k = 0; k < optionCount; k++) {
           if (k === i || selected[k] == null || kinds[k] !== 'size') continue;
