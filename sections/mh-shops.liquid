@@ -1,0 +1,111 @@
+{%- comment -%}
+  /pages/shops: search hero, one card per school (Organization metaobject), promo cards (blocks).
+  A school is live when its collection has products; the count is designs, not garment versions
+  (each style of a design is its own product, linked by merchouse.sibling_products).
+{%- endcomment -%}
+{{ 'mh-shops.css' | asset_url | stylesheet_tag }}
+
+<div class="mh-shops">
+  <div class="mh-shops-hero{% if section.settings.hero_image == blank %} mh-shops-hero--plain{% endif %}">
+    {%- if section.settings.hero_image != blank -%}
+      {{ section.settings.hero_image | image_url: width: 2400 | image_tag: class: 'mh-shops-hero__img', loading: 'eager', fetchpriority: 'high', widths: '750, 1100, 1500, 2000, 2400', sizes: '100vw', alt: '' }}
+    {%- endif -%}
+    <form class="mh-search" action="{{ routes.search_url }}" method="get" role="search">
+      <label class="visually-hidden" for="MhShopsSearch-{{ section.id }}">{{ section.settings.search_placeholder | escape }}</label>
+      <input class="mh-search__input" id="MhShopsSearch-{{ section.id }}" type="search" name="q" placeholder="{{ section.settings.search_placeholder | escape }}" autocomplete="off">
+      <input type="hidden" name="options[prefix]" value="last">
+      <button class="mh-search__btn" type="submit" aria-label="Search">{% render 'mh-icon', name: 'search' %}</button>
+    </form>
+  </div>
+
+  <div class="mh-shops-body page-width-mh">
+    {%- liquid
+      assign schools = shop.metaobjects.school.values
+    -%}
+    <ul class="mh-schools" role="list">
+      {%- for school in schools -%}
+        {%- liquid
+          assign col = school.collection.value
+          assign designs = 0
+          if col
+            for p in col.products
+              assign sibs = p.metafields.merchouse.sibling_products.value
+              if sibs == blank or sibs.first.id == p.id
+                assign designs = designs | plus: 1
+              endif
+            endfor
+          endif
+          assign live = false
+          if col and designs > 0
+            assign live = true
+          endif
+        -%}
+        <li class="mh-school{% unless live %} is-soon{% endunless %}">
+          <div class="mh-school__info">
+            <h2 class="mh-school__name">{{ school.name.value | default: school.system.handle | escape }}</h2>
+            <p class="mh-school__count">
+              {%- if live -%}{{ designs }} {% if designs == 1 %}PRODUCT{% else %}PRODUCTS{% endif %}{%- else -%}COMING SOON{%- endif -%}
+            </p>
+            {%- if live -%}
+              <a class="mh-pill-btn" href="{{ col.url }}">View Shop<span class="visually-hidden">: {{ school.name.value | escape }}</span></a>
+            {%- else -%}
+              <span class="mh-pill-btn is-disabled" aria-disabled="true">View Shop</span>
+            {%- endif -%}
+          </div>
+          <div class="mh-school__logo">
+            {%- assign logo = school.logo.value -%}
+            {%- if logo -%}
+              {{ logo | image_url: width: 300 | image_tag: loading: 'lazy', alt: '', width: 140, height: 140 }}
+            {%- else -%}
+              <span class="mh-school__mono" aria-hidden="true">{{ school.short_name.value | default: school.name.value | slice: 0, 3 | escape }}</span>
+            {%- endif -%}
+          </div>
+          {%- if live -%}<a class="mh-school__hit" href="{{ col.url }}" tabindex="-1" aria-hidden="true"></a>{%- endif -%}
+        </li>
+      {%- else -%}
+        <li class="mh-schools__empty">Shops are on the way.</li>
+      {%- endfor -%}
+    </ul>
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="mh-promos">
+        {%- for block in section.blocks -%}
+          <div class="mh-promo mh-promo--{{ block.settings.tone }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.label != blank -%}<p class="mh-promo__label">{{ block.settings.label | escape }}</p>{%- endif -%}
+            {%- if block.settings.body != blank -%}<p class="mh-promo__body">{{ block.settings.body | escape }}</p>{%- endif -%}
+            {%- if block.settings.button_label != blank -%}
+              <a class="mh-pill-btn{% if block.settings.tone == 'tiber' %} mh-pill-btn--green{% endif %}" href="{{ block.settings.button_link | default: '#' }}">{{ block.settings.button_label | escape }}</a>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Shops",
+  "tag": "section",
+  "class": "section mh-shops-section",
+  "settings": [
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image", "info": "Behind the search bar (Figma: Shops Hero). Gets a 45% Tiber overlay." },
+    { "type": "text", "id": "search_placeholder", "label": "Search placeholder", "default": "Search for your merch!" }
+  ],
+  "blocks": [
+    {
+      "type": "promo",
+      "name": "Promo card",
+      "limit": 4,
+      "settings": [
+        { "type": "select", "id": "tone", "label": "Color", "default": "amber", "options": [ { "value": "amber", "label": "Soft Amber" }, { "value": "tiber", "label": "Tiber" } ] },
+        { "type": "text", "id": "label", "label": "Label", "default": "OPEN A SHOP" },
+        { "type": "textarea", "id": "body", "label": "Text", "default": "Give your team or booster club its own shop. We set it up, print on demand, and send a share of every sale back to your program." },
+        { "type": "text", "id": "button_label", "label": "Button label", "default": "Start a Shop" },
+        { "type": "url", "id": "button_link", "label": "Button link" }
+      ]
+    }
+  ],
+  "presets": [ { "name": "Shops" } ]
+}
+{% endschema %}
