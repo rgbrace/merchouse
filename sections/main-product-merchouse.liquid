@@ -187,9 +187,10 @@
               </legend>
               <div class="mh-swatches">
                 {%- for value in option.values -%}
+                  {%- assign vlow = value | downcase -%}
                   <button
                     type="button"
-                    class="mh-swatch{% if current_variant.options[oi] == value %} is-selected{% endif %}"
+                    class="mh-swatch{% if current_variant.options[oi] == value %} is-selected{% endif %}{% if vlow contains 'heather' or vlow contains 'tri-blend' %} is-heather{% endif %}"
                     data-mh-value="{{ value | escape }}"
                     aria-label="{{ value | escape }}"
                     aria-pressed="{% if current_variant.options[oi] == value %}true{% else %}false{% endif %}"
