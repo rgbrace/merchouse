@@ -24,11 +24,16 @@
           }
         }
       },
-      "block_order": ["open", "order"],
+      "block_order": [
+        "open",
+        "order"
+      ],
       "settings": {
         "search_placeholder": "Search for your merch!"
       }
     }
   },
-  "order": ["shops"]
+  "order": [
+    "shops"
+  ]
 }
