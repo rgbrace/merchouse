@@ -244,8 +244,12 @@
           {%- liquid
             assign show = true
             unless any_active
-              assign sibs = p.metafields.merchouse.sibling_products.value
-              if sibs != blank and sibs.first.id != p.id
+              assign lead = p
+              for sib in p.metafields.merchouse.sibling_products.value
+                assign lead = sib
+                break
+              endfor
+              if lead.id != p.id
                 assign show = false
               endif
             endunless
