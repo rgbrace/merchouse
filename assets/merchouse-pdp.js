@@ -217,7 +217,8 @@
       }
 
       pair = pickPair(v || priceRef);
-      if (!pair.back) view = 'front';
+      // keep the shopper's Front/Back choice across colors; showView() falls back to the front
+      // for a color with no back image without forgetting that they asked for the back
       showView();
       if (!busy) setButton('idle', v);
       updateStyleLinks();
@@ -255,7 +256,6 @@
           var ok = variants.some(function (v) { return v.options[k] === selected[k] && v.available && matches(v, k); });
           if (!ok) selected[k] = null;
         }
-        if (kinds[i] === 'color') view = 'front';
         if (msg) msg.textContent = '';
         render();
       });
