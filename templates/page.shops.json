@@ -1,0 +1,34 @@
+{
+  "sections": {
+    "shops": {
+      "type": "mh-shops",
+      "blocks": {
+        "open": {
+          "type": "promo",
+          "settings": {
+            "tone": "amber",
+            "label": "OPEN A SHOP",
+            "body": "Give your team or booster club its own shop. We set it up, print on demand, and send a share of every sale back to your program.",
+            "button_label": "Start a Shop",
+            "button_link": "/pages/contact"
+          }
+        },
+        "order": {
+          "type": "promo",
+          "settings": {
+            "tone": "tiber",
+            "label": "PLACE AN ORDER",
+            "body": "Need shirts for the whole team or an event? Tell us what you need and we’ll send a quote.",
+            "button_label": "Request a Quote",
+            "button_link": "/pages/contact"
+          }
+        }
+      },
+      "block_order": ["open", "order"],
+      "settings": {
+        "search_placeholder": "Search for your merch!"
+      }
+    }
+  },
+  "order": ["shops"]
+}

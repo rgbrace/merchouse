@@ -1,4 +1,4 @@
-{%- comment -%} Merchouse product card (More From, collections). Param: p (product) {%- endcomment -%}
+{%- comment -%} Merchouse product card (More From, shop grids). Param: p (product). Up to 4 color dots, then +N. {%- endcomment -%}
 {%- liquid
   assign color_opt = nil
   for o in p.options_with_values
@@ -19,10 +19,11 @@
   </span>
   {%- if color_opt -%}
     <span class="mh-card__dots" aria-label="{{ color_opt.values.size }} colors">
-      {%- for value in color_opt.values limit: 5 -%}
+      {%- for value in color_opt.values limit: 4 -%}
         {%- assign vlow = value | downcase -%}
         <span class="mh-card__dot{% if vlow contains 'heather' or vlow contains 'tri-blend' %} is-heather{% endif %}" style="--swatch: {% render 'mh-swatch-color', value: value %};" title="{{ value | escape }}"></span>
       {%- endfor -%}
+      {%- if color_opt.values.size > 4 -%}<span class="mh-card__more">+{{ color_opt.values.size | minus: 4 }}</span>{%- endif -%}
     </span>
   {%- endif -%}
   <span class="mh-card__title">{{ p.title | split: ' – ' | first | escape }}</span>

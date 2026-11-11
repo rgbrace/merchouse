@@ -1,0 +1,24 @@
+{%- comment -%}
+  Product type → filter-panel style key (outputs one word, no whitespace).
+  tee | long | performance | polo | sweatshirt | hooded | zip, or gear for anything that isn't a garment style.
+{%- endcomment -%}
+{%- liquid
+  assign s = type | downcase
+  if s contains 'zip'
+    echo 'zip'
+  elsif s contains 'hood'
+    echo 'hooded'
+  elsif s contains 'long'
+    echo 'long'
+  elsif s contains 'perform' or s contains 'dri' or s contains 'tech'
+    echo 'performance'
+  elsif s contains 'polo'
+    echo 'polo'
+  elsif s contains 'sweat' or s contains 'crew'
+    echo 'sweatshirt'
+  elsif s contains 'tee' or s contains 'shirt' or s contains 'tank'
+    echo 'tee'
+  else
+    echo 'gear'
+  endif
+-%}
