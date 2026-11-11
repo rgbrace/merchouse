@@ -87,7 +87,8 @@
     </div>
   </div>
 
-  {%- if collection.filters.size > 0 -%}
+  {%- comment -%} Only when the store exposes at least one filter this panel knows (product type, vendor, Color). {%- endcomment -%}
+  {%- if f_type or f_vendor or f_color -%}
     <form class="mh-filter" data-mh-filter action="{{ collection.url }}" method="get">
       <div class="mh-filter__bar">
         <div class="mh-filter__left page-width-mh">
