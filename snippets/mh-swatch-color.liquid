@@ -1,16 +1,25 @@
 {%- comment -%}
   Outputs a CSS color for a Color option value.
   1) Shopify's own swatch color (set on the option value in admin), else
-  2) a Garment Color entry (Content → Metaobjects → Garment Color) with the same name, else
+  2) a Garment Color entry (Content → Metaobjects → Garment Color) whose handle is the color name
+     handleized ("Clover Green" → clover-green; Studio keeps these in sync), else one with the same Name, else
   3) Theme settings → Merchouse → Swatch colors ("Name: #hex" per line), else
   4) the value itself (works for plain names like "Black").
 {%- endcomment -%}
 {%- liquid
   assign out = ''
+  assign want = value | append: '' | downcase | strip
   if value.swatch.color
     assign out = value.swatch.color
   else
-    assign want = value | append: '' | downcase | strip
+    # direct lookup by handle: no list limit (looping .values only sees the first 50 entries)
+    assign gc_key = want | handleize
+    assign gc_hit = shop.metaobjects.garment_color[gc_key]
+    if gc_hit
+      assign out = gc_hit.hex.value
+    endif
+  endif
+  if out == ''
     for gc in shop.metaobjects.garment_color.values
       assign gc_name = gc.name.value | downcase | strip
       if gc_name == want
