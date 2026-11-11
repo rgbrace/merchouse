@@ -1,0 +1,283 @@
+{%- comment -%}
+  School / Team shop (collection template "shop"). Works out from the store data which it is:
+  a School (Organization metaobject) whose collection is this one → school page with team pills;
+  a Team metaobject whose collection is this one → team page, breadcrumb back to its school.
+  Filters are Shopify's own collection filters (product type → Styles/Gear, vendor → Brands,
+  Color option → Colors), so counts and URLs stay native. With no filters active the grid shows
+  one card per design (the first product in merchouse.sibling_products); with filters on, every
+  matching product shows.
+{%- endcomment -%}
+{{ 'mh-shops.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'mh-shop.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign school = nil
+  assign team = nil
+  for s in shop.metaobjects.school.values
+    if s.collection.value.id == collection.id
+      assign school = s
+      break
+    endif
+  endfor
+  unless school
+    for t in shop.metaobjects.team.values
+      if t.collection.value.id == collection.id
+        assign team = t
+        assign school = t.school.value
+        break
+      endif
+    endfor
+  endunless
+
+  assign title = collection.title
+  if team
+    assign title = team.name.value | default: collection.title
+  elsif school
+    assign title = school.name.value | default: collection.title
+  endif
+
+  assign hero = nil
+  if team and team.hero_image.value
+    assign hero = team.hero_image.value
+  elsif school and school.hero_image.value
+    assign hero = school.hero_image.value
+  elsif collection.image
+    assign hero = collection.image
+  elsif section.settings.hero_image
+    assign hero = section.settings.hero_image
+  endif
+
+  assign shops_url = section.settings.shops_url | default: '/pages/shops'
+  assign any_active = false
+  for f in collection.filters
+    if f.active_values.size > 0
+      assign any_active = true
+    endif
+  endfor
+
+  assign f_type = nil
+  assign f_vendor = nil
+  assign f_color = nil
+  for f in collection.filters
+    assign pn = f.param_name | downcase
+    assign fl = f.label | downcase
+    if pn == 'filter.p.product_type'
+      assign f_type = f
+    elsif pn == 'filter.p.vendor'
+      assign f_vendor = f
+    elsif pn contains 'option.color' or fl == 'color' or fl == 'colour'
+      assign f_color = f
+    endif
+  endfor
+-%}
+
+<div class="mh-shop" data-mh-shop data-section="{{ section.id }}" data-base="{{ collection.url }}">
+  <div class="mh-shop-hero{% if hero == nil %} mh-shop-hero--plain{% endif %}">
+    {%- if hero -%}
+      {{ hero | image_url: width: 2400 | image_tag: class: 'mh-shop-hero__img', loading: 'eager', fetchpriority: 'high', widths: '750, 1100, 1500, 2000, 2400', sizes: '100vw', alt: '' }}
+    {%- endif -%}
+    <div class="mh-shop-hero__text page-width-mh">
+      <p class="mh-shop-hero__eyebrow">
+        <a href="{{ shops_url }}">SHOPS</a> |
+        {%- if team and school and school.collection.value -%}
+          {{ ' ' }}<a href="{{ school.collection.value.url }}">{{ school.name.value | upcase | escape }}</a>
+        {%- endif -%}
+      </p>
+      <h1 class="mh-shop-hero__title">{{ title | escape }}</h1>
+    </div>
+  </div>
+
+  {%- if collection.filters.size > 0 -%}
+    <form class="mh-filter" data-mh-filter action="{{ collection.url }}" method="get">
+      <div class="mh-filter__bar">
+        <div class="mh-filter__left page-width-mh">
+          <button type="button" class="mh-filter__toggle" data-mh-filter-toggle aria-expanded="false" aria-controls="MhFilterPanel-{{ section.id }}">
+            {% render 'mh-icon', name: 'filter' %}<span>FILTER</span>
+          </button>
+          <ul class="mh-chips" role="list">
+            {%- for f in collection.filters -%}
+              {%- for v in f.active_values -%}
+                <li><a class="mh-chip" href="{{ v.url_to_remove }}" data-mh-link>{{ v.label | escape }}<span aria-hidden="true">×</span><span class="visually-hidden">Remove filter</span></a></li>
+              {%- endfor -%}
+            {%- endfor -%}
+          </ul>
+          <button type="button" class="mh-filter__action" data-mh-filter-action hidden>Done</button>
+        </div>
+      </div>
+
+      <div class="mh-filter__panel" id="MhFilterPanel-{{ section.id }}" data-mh-filter-panel hidden>
+        {%- liquid
+          assign has_styles = false
+          assign has_gear = false
+          if f_type
+            for v in f_type.values
+              assign k = nil
+              capture k
+                render 'mh-style-key', type: v.value
+              endcapture
+              if k == 'gear'
+                assign has_gear = true
+              else
+                assign has_styles = true
+              endif
+            endfor
+          endif
+          assign first_tab = ''
+          if has_styles
+            assign first_tab = 'styles'
+          elsif has_gear
+            assign first_tab = 'gear'
+          elsif f_vendor
+            assign first_tab = 'brands'
+          elsif f_color
+            assign first_tab = 'colors'
+          endif
+        -%}
+        <div class="mh-filter__tabs" role="tablist" aria-label="Filter by">
+          {%- if has_styles -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'styles' %} is-active{% endif %}" role="tab" data-mh-tab="styles" aria-selected="{% if first_tab == 'styles' %}true{% else %}false{% endif %}">Styles</button>{%- endif -%}
+          {%- if has_gear -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'gear' %} is-active{% endif %}" role="tab" data-mh-tab="gear" aria-selected="{% if first_tab == 'gear' %}true{% else %}false{% endif %}">Gear</button>{%- endif -%}
+          {%- if f_vendor -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'brands' %} is-active{% endif %}" role="tab" data-mh-tab="brands" aria-selected="{% if first_tab == 'brands' %}true{% else %}false{% endif %}">Brands</button>{%- endif -%}
+          {%- if f_color -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'colors' %} is-active{% endif %}" role="tab" data-mh-tab="colors" aria-selected="{% if first_tab == 'colors' %}true{% else %}false{% endif %}">Colors</button>{%- endif -%}
+        </div>
+
+        {%- comment -%} Styles: the full garment line-up; a style with no products here is shown faded. {%- endcomment -%}
+        {%- if has_styles -%}
+          <div class="mh-filter__options mh-filter__options--styles" role="tabpanel" data-mh-pane="styles"{% unless first_tab == 'styles' %} hidden{% endunless %}>
+            {%- assign style_keys = 'tee,long,performance,polo,sweatshirt,hooded,zip' | split: ',' -%}
+            {%- assign style_labels = 'T-Shirt,Long Sleeve,Performance,Polo,Sweatshirt,Hooded,Zip Hoodie' | split: ',' -%}
+            {%- for key in style_keys -%}
+              {%- liquid
+                assign label = style_labels[forloop.index0]
+                assign count = 0
+                assign checked = false
+                assign vals = ''
+                for v in f_type.values
+                  capture k
+                    render 'mh-style-key', type: v.value
+                  endcapture
+                  if k == key
+                    assign count = count | plus: v.count
+                    assign vals = vals | append: v.value | append: '|'
+                    if v.active
+                      assign checked = true
+                    endif
+                  endif
+                endfor
+              -%}
+              <label class="mh-opt-style{% if count == 0 and checked == false %} is-unavailable{% endif %}">
+                <input type="checkbox" class="visually-hidden" name="{{ f_type.param_name }}" value="{{ vals | split: '|' | first | escape }}" data-mh-values="{{ vals | escape }}" {% if checked %}checked{% endif %} {% if count == 0 and checked == false %}disabled{% endif %}>
+                <span class="mh-opt-style__icon">{% render 'mh-style-icon', style: label %}</span>
+                <span class="mh-opt-style__label">{{ label }}</span>
+              </label>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if has_gear -%}
+          <div class="mh-filter__options mh-filter__options--list" role="tabpanel" data-mh-pane="gear"{% unless first_tab == 'gear' %} hidden{% endunless %}>
+            {%- for v in f_type.values -%}
+              {%- capture k -%}{%- render 'mh-style-key', type: v.value -%}{%- endcapture -%}
+              {%- if k == 'gear' -%}
+                <label class="mh-pill mh-pill--check{% if v.count == 0 and v.active == false %} is-unavailable{% endif %}">
+                  <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %} {% if v.count == 0 and v.active == false %}disabled{% endif %}>
+                  <span>{{ v.label | escape }}</span>
+                </label>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if f_vendor -%}
+          <div class="mh-filter__options mh-filter__options--list" role="tabpanel" data-mh-pane="brands"{% unless first_tab == 'brands' %} hidden{% endunless %}>
+            {%- for v in f_vendor.values -%}
+              <label class="mh-pill mh-pill--check{% if v.count == 0 and v.active == false %} is-unavailable{% endif %}">
+                <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %} {% if v.count == 0 and v.active == false %}disabled{% endif %}>
+                <span>{{ v.label | escape }}</span>
+              </label>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if f_color -%}
+          <div class="mh-filter__options mh-filter__options--colors" role="tabpanel" data-mh-pane="colors"{% unless first_tab == 'colors' %} hidden{% endunless %}>
+            {%- for v in f_color.values -%}
+              {%- assign vlow = v.label | downcase -%}
+              <label class="mh-opt-color{% if v.count == 0 and v.active == false %} is-unavailable{% endif %}" title="{{ v.label | escape }}">
+                <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %} {% if v.count == 0 and v.active == false %}disabled{% endif %}>
+                <span class="mh-opt-color__dot{% if vlow contains 'heather' or vlow contains 'tri-blend' %} is-heather{% endif %}" style="--swatch: {% render 'mh-swatch-color', value: v.label %};"></span>
+                <span class="mh-opt-color__label">{{ v.label | escape }}</span>
+              </label>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </form>
+  {%- endif -%}
+
+  {%- if school and team == nil -%}
+    {%- liquid
+      assign team_links = ''
+      for t in shop.metaobjects.team.values
+        if t.school.value.system.handle == school.system.handle and t.collection.value
+          assign team_links = team_links | append: 'x'
+        endif
+      endfor
+    -%}
+    {%- if team_links != '' -%}
+      <nav class="mh-teams" aria-label="Teams">
+        <ul class="mh-teams__list" role="list">
+          <li><a class="mh-pill is-active" href="{{ collection.url }}" aria-current="page">Shop All</a></li>
+          {%- for t in shop.metaobjects.team.values -%}
+            {%- if t.school.value.system.handle == school.system.handle and t.collection.value -%}
+              <li><a class="mh-pill" href="{{ t.collection.value.url }}">{{ t.name.value | escape }}</a></li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </nav>
+    {%- endif -%}
+  {%- endif -%}
+
+  <div class="mh-shop-grid-wrap page-width-mh">
+    {%- paginate collection.products by section.settings.per_page -%}
+      <ul class="mh-shop-grid" role="list" data-mh-grid data-count="{{ collection.products_count }}">
+        {%- for p in collection.products -%}
+          {%- liquid
+            assign show = true
+            unless any_active
+              assign sibs = p.metafields.merchouse.sibling_products.value
+              if sibs != blank and sibs.first.id != p.id
+                assign show = false
+              endif
+            endunless
+          -%}
+          {%- if show -%}
+            <li class="mh-shop-grid__item">{%- render 'mh-product-card', p: p -%}</li>
+          {%- endif -%}
+        {%- else -%}
+          <li class="mh-shop-grid__empty">
+            {%- if any_active -%}No products match these filters. <a href="{{ collection.url }}">Clear filters</a>{%- else -%}New merch is on the way. Check back soon.{%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+      {%- if paginate.next -%}
+        <div class="mh-shop-more">
+          <a class="mh-pill-btn mh-pill-btn--lg" href="{{ paginate.next.url }}" data-mh-more>Load more</a>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "School / team shop",
+  "tag": "section",
+  "class": "section mh-shop-section",
+  "settings": [
+    { "type": "paragraph", "content": "Reads the School or Team record that points at this collection: name, hero image, teams and breadcrumb. Filters come from Navigation → Collection and search filters (product type, vendor, Color)." },
+    { "type": "image_picker", "id": "hero_image", "label": "Fallback hero image", "info": "Used when the school/team record and the collection have no image." },
+    { "type": "url", "id": "shops_url", "label": "Shops page", "info": "Where “SHOPS” in the breadcrumb links. Defaults to /pages/shops." },
+    { "type": "range", "id": "per_page", "label": "Products per page", "min": 12, "max": 48, "step": 4, "default": 48, "info": "Each design has one product per style, so a page shows fewer cards than this." }
+  ]
+}
+{% endschema %}
