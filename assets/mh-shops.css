@@ -178,11 +178,13 @@
 .mh-shop-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .mh-shop-hero::after { content: ''; position: absolute; inset: 0; background: rgba(6, 48, 56, 0.5); }
 .mh-shop-hero--plain::after { display: none; }
-.mh-shop-hero__text { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px; color: var(--mh-white); }
+.mh-shop-hero__text { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; color: var(--mh-white); }
 .mh-shop-hero__eyebrow { margin: 0; font: var(--mh-type-body-bold); text-transform: uppercase; }
 .mh-shop-hero__eyebrow a { color: inherit; text-decoration: none; }
 .mh-shop-hero__eyebrow a:hover { text-decoration: underline; }
-.mh-shop-hero__title { margin: 0; font: var(--mh-type-hero); color: var(--mh-white); text-transform: uppercase; letter-spacing: 0; overflow-wrap: anywhere; }
+/* Title sits on the hero's bottom padding: line-height 1 plus a small negative margin removes the
+   font's built-in space under the letters, so the baseline lands exactly 40px (20px on phones) from the bottom. */
+.mh-shop-hero__title { margin: 0 0 -0.094em; font: var(--mh-type-hero); line-height: 1; color: var(--mh-white); text-transform: uppercase; letter-spacing: 0; overflow-wrap: anywhere; }
 
 /* filter bar + panel */
 .mh-filter { background: var(--mh-linen); }
@@ -284,7 +286,7 @@
 }
 @media (max-width: 749px) {
   .mh-shop-hero { min-height: 160px; padding-bottom: 20px; }
-  .mh-shop-hero__title { font: var(--mh-type-m-hero); }
+  .mh-shop-hero__title { font: var(--mh-type-m-hero); line-height: 1; }
   .mh-filter__panel { padding: 16px 20px 40px; gap: 24px; }
   .mh-filter__tabs { justify-content: flex-start; align-self: stretch; }
   .mh-filter__options--styles { display: grid; grid-template-columns: repeat(2, 120px); gap: 24px 40px; }
