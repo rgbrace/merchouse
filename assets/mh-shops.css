@@ -67,7 +67,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  height: var(--mh-hero-height, 268px);
+  height: var(--mh-hero-height, 220px);
   padding-inline: var(--mh-gutter);
   background: var(--mh-tiber);
   overflow: hidden;
@@ -167,7 +167,7 @@
   position: relative;
   display: flex;
   align-items: flex-end;
-  height: var(--mh-hero-height, 268px);
+  height: var(--mh-hero-height, 220px);
   padding-bottom: 40px;
   background: var(--mh-tiber);
   overflow: hidden;
