@@ -67,7 +67,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 320px;
+  height: var(--mh-hero-height, 268px);
   padding-inline: var(--mh-gutter);
   background: var(--mh-tiber);
   overflow: hidden;
@@ -154,7 +154,6 @@
   .mh-schools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 749px) {
-  .mh-shops-hero { min-height: 160px; }
   .mh-search { height: 52px; }
   .mh-shops-body { padding-top: 24px; padding-bottom: 48px; }
   .mh-schools { grid-template-columns: 1fr; }
@@ -168,7 +167,7 @@
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 268px;
+  height: var(--mh-hero-height, 268px);
   padding-bottom: 40px;
   background: var(--mh-tiber);
   overflow: hidden;
@@ -284,7 +283,7 @@
   .mh-filter__options--styles { gap: 24px; }
 }
 @media (max-width: 749px) {
-  .mh-shop-hero { min-height: 160px; padding-bottom: 20px; }
+  .mh-shop-hero { padding-bottom: 20px; }
   .mh-shop-hero__title { font: var(--mh-type-m-hero); }
   .mh-filter__panel { padding: 16px 20px 40px; gap: 24px; }
   .mh-filter__tabs { justify-content: flex-start; align-self: stretch; }
