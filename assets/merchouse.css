@@ -14,7 +14,7 @@
 
   /* Figma text styles (Design System page). Figma "auto" line height ≈ 1.26 */
   --mh-lh: 1.26;
-  --mh-type-hero: 800 64px / var(--mh-lh) var(--mh-font);
+  --mh-type-hero: 800 48px / var(--mh-lh) var(--mh-font);
   --mh-type-h1: 800 48px / var(--mh-lh) var(--mh-font);
   --mh-type-h2: 700 32px / var(--mh-lh) var(--mh-font);
   --mh-type-h3: 700 24px / var(--mh-lh) var(--mh-font);
@@ -28,7 +28,7 @@
   --mh-type-button-m: 600 15px / var(--mh-lh) var(--mh-font);
   --mh-type-button-s: 600 13px / var(--mh-lh) var(--mh-font);
   /* Mobile text styles */
-  --mh-type-m-hero: 800 36px / var(--mh-lh) var(--mh-font);
+  --mh-type-m-hero: 800 30px / var(--mh-lh) var(--mh-font);
   --mh-type-m-h1: 800 32px / var(--mh-lh) var(--mh-font);
   --mh-type-m-h2: 700 24px / var(--mh-lh) var(--mh-font);
   --mh-type-m-h3: 700 20px / var(--mh-lh) var(--mh-font);
