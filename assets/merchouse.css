@@ -65,8 +65,33 @@ details-modal.header__search {
   display: none !important;
 }
 .mh-logo img {
-  width: 36px;
-  height: auto;
+  width: auto;
+  height: 48px;
+}
+
+/* Header: 64px bar per Figma (Header/Nav, Section/Header-Full).
+   48px logo + 8px above/below; Figma's hamburger (40x27) and bag (30x40) icons. */
+.section-header .header {
+  padding-top: 0;
+  padding-bottom: 0;
+  min-height: 64px;
+}
+.section-header .header__heading-link {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.header__icon--menu .icon-hamburger {
+  width: 40px;
+  height: 27px;
+}
+.header__icon--cart .icon {
+  width: 30px;
+  height: 40px;
+}
+.header__icon--cart .svg-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .footer {
   font-family: var(--mh-font);
