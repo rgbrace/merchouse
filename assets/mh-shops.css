@@ -73,8 +73,6 @@
   overflow: hidden;
 }
 .mh-shops-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.mh-shops-hero::after { content: ''; position: absolute; inset: 0; background: rgba(6, 48, 56, 0.45); }
-.mh-shops-hero--plain::after { display: none; }
 .mh-search {
   position: relative;
   z-index: 1;
@@ -176,9 +174,12 @@
   overflow: hidden;
 }
 .mh-shop-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.mh-shop-hero::after { content: ''; position: absolute; inset: 0; background: rgba(6, 48, 56, 0.5); }
+/* No color tint on hero photos: a neutral fade along the bottom keeps the name readable
+   without changing the photo's colors. --mh-hero-shade sets how dark the fade gets (0 = none). */
+.mh-shop-hero { --mh-hero-shade: 0.55; }
+.mh-shop-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, var(--mh-hero-shade)) 0%, rgba(0, 0, 0, 0) 65%); }
 .mh-shop-hero--plain::after { display: none; }
-.mh-shop-hero__text { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px; color: var(--mh-white); }
+.mh-shop-hero__text { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px; color: var(--mh-white); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35); }
 .mh-shop-hero__eyebrow { margin: 0; font: var(--mh-type-body-bold); text-transform: uppercase; }
 .mh-shop-hero__eyebrow a { color: inherit; text-decoration: none; }
 .mh-shop-hero__eyebrow a:hover { text-decoration: underline; }
