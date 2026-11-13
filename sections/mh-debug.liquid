@@ -1,0 +1,4 @@
+<pre id="mhdebug">{%- for p in collection.products -%}
+{{ p.id }} | {{ p.handle }} | sibs_raw={{ p.metafields.merchouse.sibling_products }} | size={{ p.metafields.merchouse.sibling_products.value.size }} | first_id={{ p.metafields.merchouse.sibling_products.value.first.id }} | first_handle={{ p.metafields.merchouse.sibling_products.value.first.handle }}
+{% endfor -%}</pre>
+{% schema %}{"name":"MH debug"}{% endschema %}
