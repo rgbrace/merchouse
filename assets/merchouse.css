@@ -1247,3 +1247,10 @@ a.mh-style:focus-visible {
     padding: 0 var(--mh-space-4);
   }
 }
+
+/* Style switch in place (merchouse-pdp.js): brief dim while the next style loads */
+.mh-pdp--full.is-switching { cursor: progress; }
+.mh-pdp--full.is-switching .mh-pdp__stage,
+.mh-pdp--full.is-switching .mh-pdp__details { opacity: .6; transition: opacity .15s ease .1s; }
+.mh-style:focus { outline: none; }
+.mh-style:focus-visible { outline: 2px solid var(--mh-green); outline-offset: 2px; }
