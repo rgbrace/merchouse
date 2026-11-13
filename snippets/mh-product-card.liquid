@@ -1,4 +1,4 @@
-{%- comment -%} Merchouse product card (More From, shop grids). Param: p (product). Up to 4 color dots, then +N. {%- endcomment -%}
+{%- comment -%} Merchouse product card (More From, shop grids). Params: p (product), color (optional: show that color's photo and link to it). Up to 4 color dots, then +N. {%- endcomment -%}
 {%- liquid
   assign color_opt = nil
   for o in p.options_with_values
@@ -14,21 +14,41 @@
     M Studio builds), using the back photo of the same color as the card's front ("Black front" -> "Black back").
     Other designs keep the zoom.
   endcomment
-  assign back = nil
-  if p.metafields.merchouse.has_back_print.value == true and p.featured_media
-    assign back_alt = p.featured_media.alt | replace: ' front', ' back'
+  # Card photo: the picked color's front photo (alt "{Color} front") when a color is given, else the featured photo.
+  assign front = p.featured_media
+  assign href = p.url
+  if color != blank
+    assign want = color | append: ' front' | downcase
     for m in p.media
-      if m.alt == back_alt and m.id != p.featured_media.id
+      assign ma = m.alt | downcase
+      if ma == want
+        assign front = m
+        break
+      endif
+    endfor
+    for v in p.variants
+      if v.options contains color
+        assign href = v.url
+        break
+      endif
+    endfor
+  endif
+
+  assign back = nil
+  if p.metafields.merchouse.has_back_print.value == true and front
+    assign back_alt = front.alt | replace: ' front', ' back'
+    for m in p.media
+      if m.alt == back_alt and m.id != front.id
         assign back = m
         break
       endif
     endfor
   endif
 -%}
-<a class="mh-card{% if back %} has-back{% endif %}" href="{{ p.url }}">
+<a class="mh-card{% if back %} has-back{% endif %}" href="{{ href }}">
   <span class="mh-card__media">
-    {%- if p.featured_media -%}
-      {{ p.featured_media | image_url: width: 800 | image_tag: loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: p.title }}
+    {%- if front -%}
+      {{ front | image_url: width: 800 | image_tag: loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: p.title }}
       {%- if back -%}
         {{ back | image_url: width: 800 | image_tag: class: 'mh-card__back', loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: '' }}
       {%- endif -%}
