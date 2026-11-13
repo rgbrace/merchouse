@@ -1,4 +1,7 @@
 <pre id="mhdebug">{%- for p in collection.products -%}
-{{ p.id }} | {{ p.handle }} | sibs_raw={{ p.metafields.merchouse.sibling_products }} | size={{ p.metafields.merchouse.sibling_products.value.size }} | first_id={{ p.metafields.merchouse.sibling_products.value.first.id }} | first_handle={{ p.metafields.merchouse.sibling_products.value.first.handle }}
+{%- assign sibs = p.metafields.merchouse.sibling_products.value -%}
+{%- assign f1 = sibs | first -%}
+{%- assign f2 = nil -%}{%- for s in sibs limit: 1 -%}{%- assign f2 = s -%}{%- endfor -%}
+{{ p.id }} | dot_first={{ sibs.first.id }} | filter_first={{ f1.id }} | loop_first={{ f2.id }} | index0={{ sibs[0].id }}
 {% endfor -%}</pre>
 {% schema %}{"name":"MH debug"}{% endschema %}
