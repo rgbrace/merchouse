@@ -464,7 +464,7 @@ details-modal.header__search {
 .mh-pdp {
   max-width: 1240px;
   margin: 0 auto;
-  padding: var(--mh-space-22) 20px var(--mh-space-24);
+  padding: 48px 20px var(--mh-space-24); /* 48px under the header (was 88px), per the Bonfire comparison */
   color: var(--mh-tiber);
   font: var(--mh-type-body);
   letter-spacing: 0; /* Dawn adds 0.6px to body text; Figma uses 0 */
@@ -940,12 +940,13 @@ details-modal.header__search {
 .mh-swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--mh-space-4);
+  gap: 6px;
 }
-/* Figma "Color Swatch": 40px color dot inside a 48px ring (2px stroke) that shows on hover/selected */
+/* Color swatch: 24px color dot inside a 32px ring (2px stroke) that shows on hover/selected.
+   Smaller than Figma's 40/48 to match the Bonfire-style compact picker. */
 .mh-swatch {
-  --ring: 48px;
-  --dot: 40px;
+  --ring: 32px;
+  --dot: 24px;
   display: grid;
   place-items: center;
   width: var(--ring);
@@ -1198,11 +1199,11 @@ a.mh-style:focus-visible {
     font: var(--mh-type-label);
   }
   .mh-swatches {
-    gap: var(--mh-space-3);
+    gap: 8px;
   }
   .mh-swatch {
-    --ring: 44px;
-    --dot: 36px;
+    --ring: 36px; /* a little larger on phones for tapping */
+    --dot: 28px;
   }
   .mh-more {
     margin-top: var(--mh-space-4);
