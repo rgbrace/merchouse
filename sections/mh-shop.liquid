@@ -273,8 +273,22 @@
   <div class="mh-shop-grid-wrap page-width-mh">
     {%- paginate collection.products by section.settings.per_page -%}
       <ul class="mh-shop-grid" role="list" data-mh-grid data-count="{{ collection.products_count }}">
+        {%- comment -%}
+          All-school merch (merchouse.school set, no team) shows in the school shop AND every team shop.
+          Order: school shop = all-school first, then team merch; team shop = its team first, then all-school.
+          Ordered within each page of products.
+        {%- endcomment -%}
+        {%- if team -%}{%- assign passes = 'team,school' | split: ',' -%}{%- else -%}{%- assign passes = 'school,team' | split: ',' -%}{%- endif -%}
+        {%- for pass in passes -%}
         {%- for p in collection.products -%}
           {%- liquid
+            assign grp = 'team'
+            if p.metafields.merchouse.team.value == blank and p.metafields.merchouse.school.value != blank
+              assign grp = 'school'
+            endif
+            if grp != pass
+              continue
+            endif
             assign show = true
             unless any_active
               assign sibs = p.metafields.merchouse.sibling_products.value
@@ -307,11 +321,13 @@
               <li class="mh-shop-grid__item">{%- render 'mh-product-card', p: p -%}</li>
             {%- endif -%}
           {%- endif -%}
-        {%- else -%}
+        {%- endfor -%}
+        {%- endfor -%}
+        {%- if collection.products.size == 0 -%}
           <li class="mh-shop-grid__empty">
             {%- if any_active -%}No products match these filters. <a href="{{ collection.url }}">Clear filters</a>{%- else -%}New merch is on the way. Check back soon.{%- endif -%}
           </li>
-        {%- endfor -%}
+        {%- endif -%}
       </ul>
       {%- if paginate.next -%}
         <div class="mh-shop-more">
