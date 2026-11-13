@@ -1,4 +1,4 @@
-{%- comment -%} Merchouse product card (More From, shop grids). Params: p (product), color (optional: show that color's photo and link to it). Up to 4 color dots, then +N. {%- endcomment -%}
+{%- comment -%} Merchouse product card (More From, shop grids). Param: p (product). Up to 4 color dots, then +N. {%- endcomment -%}
 {%- liquid
   assign color_opt = nil
   for o in p.options_with_values
@@ -8,47 +8,11 @@
     endif
   endfor
   assign style_count = p.metafields.merchouse.sibling_products.value.size | default: p.metafields.custom.style_siblings.value.size | default: 0
-
-  comment
-    Hover shows the back: only for designs with a back print (merchouse.has_back_print, set by
-    M Studio builds), using the back photo of the same color as the card's front ("Black front" -> "Black back").
-    Other designs keep the zoom.
-  endcomment
-  # Card photo: the picked color's front photo (alt "{Color} front") when a color is given, else the featured photo.
-  assign front = p.featured_media
-  assign href = p.url
-  if color != blank
-    assign want = color | append: ' front' | downcase
-    for m in p.media
-      assign ma = m.alt | downcase
-      if ma == want
-        assign front = m
-        break
-      endif
-    endfor
-    # The product page opens on this color via ?color= (same as its style links); size is left unpicked.
-    assign color_q = color | url_param_escape
-    assign href = p.url | split: '?' | first | append: '?color=' | append: color_q
-  endif
-
-  assign back = nil
-  if p.metafields.merchouse.has_back_print.value == true and front
-    assign back_alt = front.alt | replace: ' front', ' back'
-    for m in p.media
-      if m.alt == back_alt and m.id != front.id
-        assign back = m
-        break
-      endif
-    endfor
-  endif
 -%}
-<a class="mh-card{% if back %} has-back{% endif %}" href="{{ href }}">
+<a class="mh-card" href="{{ p.url }}">
   <span class="mh-card__media">
-    {%- if front -%}
-      {{ front | image_url: width: 800 | image_tag: loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: p.title }}
-      {%- if back -%}
-        {{ back | image_url: width: 800 | image_tag: class: 'mh-card__back', loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: '' }}
-      {%- endif -%}
+    {%- if p.featured_media -%}
+      {{ p.featured_media | image_url: width: 800 | image_tag: loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: p.title }}
     {%- else -%}
       {{ 'product-apparel-1' | placeholder_svg_tag: 'mh-card__placeholder' }}
     {%- endif -%}
