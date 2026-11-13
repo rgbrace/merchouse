@@ -52,6 +52,76 @@
       });
   }
 
+  // ---------- Style switching without a page load ----------
+  // Each style is its own Shopify product (Color/Fit/Size use all 3 options), so a style
+  // click fetches the other product's section with the Section Rendering API, swaps it in
+  // and updates the address bar. Choices carry over through ?color=&fit=&size=.
+  var sectionCache = {};
+  function sectionUrl(href, sectionId) {
+    var u = new URL(href, window.location.origin);
+    var v = u.searchParams.get('variant');   // back/forward entries carry the chosen variant
+    return u.pathname + '?section_id=' + encodeURIComponent(sectionId) + (v ? '&variant=' + encodeURIComponent(v) : '');
+  }
+  function fetchSection(href, sectionId) {
+    var key = sectionUrl(href, sectionId);
+    if (!sectionCache[key]) {
+      sectionCache[key] = fetch(key, { credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .catch(function (e) { delete sectionCache[key]; throw e; });
+    }
+    return sectionCache[key];
+  }
+  // Load the photo the new style will open on, so the swap doesn't flash an empty frame.
+  function preloadFront(fresh, href) {
+    var color = (new URL(href, window.location.origin).searchParams.get('color') || '').toLowerCase();
+    var slides = Array.prototype.slice.call(fresh.querySelectorAll('[data-mh-media]'));
+    var slide = slides.find(function (s) { return color && s.getAttribute('data-alt').indexOf(color) > -1 && s.getAttribute('data-back') !== 'true'; }) || slides[0];
+    var src = slide && slide.querySelector('img');
+    if (!src) return Promise.resolve();
+    var img = new Image();
+    img.sizes = src.getAttribute('sizes') || '';
+    img.srcset = src.getAttribute('srcset') || '';
+    img.src = src.getAttribute('src');
+    var done = img.decode ? img.decode().catch(function () {}) : Promise.resolve();
+    return Promise.race([done, new Promise(function (r) { setTimeout(r, 700); })]);
+  }
+  var swapping = false;
+  function swapStyle(root, href, push) {
+    if (swapping) return;
+    var sectionId = root.getAttribute('data-section');
+    if (!sectionId || !window.fetch || !window.history || !window.history.pushState) { window.location.href = href; return; }
+    swapping = true;
+    root.classList.add('is-switching');
+    fetchSection(href, sectionId)
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var fresh = doc.querySelector('.mh-pdp--full');
+        if (!fresh) throw new Error('no section');
+        return preloadFront(fresh, href).then(function () { return fresh; });
+      })
+      .then(function (fresh) {
+        var oldTitle = root.getAttribute('data-mh-title') || '';
+        var newTitle = fresh.getAttribute('data-mh-title') || '';
+        if (push) {
+          if (!(window.history.state && window.history.state.mhStyle)) window.history.replaceState({ mhStyle: true }, '', window.location.href);
+          window.history.pushState({ mhStyle: true }, '', href);
+        }
+        if (oldTitle && newTitle && document.title.indexOf(oldTitle) > -1) document.title = document.title.replace(oldTitle, newTitle);
+        root.replaceWith(fresh);
+        init(fresh);
+        var cur = fresh.querySelector('.mh-style.is-selected');
+        if (cur) { cur.setAttribute('tabindex', '-1'); cur.focus({ preventScroll: true }); }
+        swapping = false;
+      })
+      .catch(function () { window.location.href = href; });
+  }
+  // Back/forward between styles swaps too.
+  window.addEventListener('popstate', function (e) {
+    if (!e.state || !e.state.mhStyle) return;
+    var root = document.querySelector('.mh-pdp--full');
+    if (root) swapStyle(root, window.location.href, false);
+  });
+
   function init(root) {
     var variants = readJSON(root, '[data-mh-variants]') || [];
     var labels = readJSON(root, '[data-mh-labels]') || {};
@@ -212,7 +282,7 @@
           var url = new URL(window.location.href);
           url.searchParams.set('variant', v.id);
           ['color', 'fit', 'size'].forEach(function (k) { url.searchParams.delete(k); });
-          window.history.replaceState({}, '', url.toString());
+          window.history.replaceState(window.history.state, '', url.toString());
         }
       }
 
@@ -236,6 +306,18 @@
         a.setAttribute('href', url.pathname + url.search);
       });
     }
+
+    styleLinks.forEach(function (a) {
+      var warm = function () { fetchSection(a.getAttribute('href'), root.getAttribute('data-section')).catch(function () {}); };
+      a.addEventListener('mouseenter', warm);
+      a.addEventListener('touchstart', warm, { passive: true });
+      a.addEventListener('focus', warm);
+      a.addEventListener('click', function (e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        swapStyle(root, a.getAttribute('href'), true);
+      });
+    });
 
     // ----- option clicks -----
     fieldsets.forEach(function (fs) {
