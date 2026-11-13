@@ -1168,6 +1168,19 @@ a.mh-style:focus-visible {
 .mh-card:hover .mh-card__media img {
   transform: scale(1.03);
 }
+/* Designs with a back print: hovering fades to the back photo instead of zooming. */
+.mh-card.has-back .mh-card__media { position: relative; }
+.mh-card__back {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.mh-card.has-back:hover .mh-card__media img { transform: none; }
+@media (hover: hover) {
+  .mh-card.has-back:hover .mh-card__back,
+  .mh-card.has-back:focus-visible .mh-card__back { opacity: 1; }
+}
 .mh-card__dots {
   display: flex;
   gap: 6px;
