@@ -69,6 +69,20 @@
       assign f_color = f
     endif
   endfor
+
+  # Brands tab lists premium brands only. Stock garments carry the house brand as vendor; it is never listed.
+  assign house_brand = section.settings.house_brand | default: 'Merchouse' | downcase | strip
+  assign has_brands = false
+  if f_vendor
+    for v in f_vendor.values
+      assign vl = v.label | downcase | strip
+      if vl != house_brand
+        if v.count > 0 or v.active
+          assign has_brands = true
+        endif
+      endif
+    endfor
+  endif
 -%}
 
 <div class="mh-shop" data-mh-shop data-section="{{ section.id }}" data-base="{{ collection.url }}">
@@ -127,7 +141,7 @@
             assign first_tab = 'styles'
           elsif has_gear
             assign first_tab = 'gear'
-          elsif f_vendor
+          elsif has_brands
             assign first_tab = 'brands'
           elsif f_color
             assign first_tab = 'colors'
@@ -136,7 +150,7 @@
         <div class="mh-filter__tabs" role="tablist" aria-label="Filter by">
           {%- if has_styles -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'styles' %} is-active{% endif %}" role="tab" data-mh-tab="styles" aria-selected="{% if first_tab == 'styles' %}true{% else %}false{% endif %}">Styles</button>{%- endif -%}
           {%- if has_gear -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'gear' %} is-active{% endif %}" role="tab" data-mh-tab="gear" aria-selected="{% if first_tab == 'gear' %}true{% else %}false{% endif %}">Gear</button>{%- endif -%}
-          {%- if f_vendor -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'brands' %} is-active{% endif %}" role="tab" data-mh-tab="brands" aria-selected="{% if first_tab == 'brands' %}true{% else %}false{% endif %}">Brands</button>{%- endif -%}
+          {%- if has_brands -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'brands' %} is-active{% endif %}" role="tab" data-mh-tab="brands" aria-selected="{% if first_tab == 'brands' %}true{% else %}false{% endif %}">Brands</button>{%- endif -%}
           {%- if f_color -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'colors' %} is-active{% endif %}" role="tab" data-mh-tab="colors" aria-selected="{% if first_tab == 'colors' %}true{% else %}false{% endif %}">Colors</button>{%- endif -%}
         </div>
 
@@ -189,10 +203,14 @@
           </div>
         {%- endif -%}
 
-        {%- if f_vendor -%}
+        {%- if has_brands -%}
           <div class="mh-filter__options mh-filter__options--list" role="tabpanel" data-mh-pane="brands"{% unless first_tab == 'brands' %} hidden{% endunless %}>
             {%- for v in f_vendor.values -%}
-              {%- if v.count > 0 or v.active -%}
+              {%- assign vl = v.label | downcase | strip -%}
+              {%- assign show_v = false -%}
+              {%- if v.count > 0 or v.active -%}{%- assign show_v = true -%}{%- endif -%}
+              {%- if vl == house_brand -%}{%- assign show_v = false -%}{%- endif -%}
+              {%- if show_v -%}
               <label class="mh-pill mh-pill--check">
                 <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %}>
                 <span>{{ v.label | escape }}</span>
@@ -284,6 +302,7 @@
     { "type": "paragraph", "content": "Reads the School or Team record that points at this collection: name, hero image, teams and breadcrumb. Filters come from Navigation → Collection and search filters (product type, vendor, Color)." },
     { "type": "image_picker", "id": "hero_image", "label": "Fallback hero image", "info": "Used when the school/team record and the collection have no image." },
     { "type": "url", "id": "shops_url", "label": "Shops page", "info": "Where “SHOPS” in the breadcrumb links. Defaults to /pages/shops." },
+    { "type": "text", "id": "house_brand", "label": "House brand", "default": "Merchouse", "info": "Vendor name used for stock garments. It never shows under Brands, so the Brands tab only lists premium brands (Nike, The North Face…)." },
     { "type": "range", "id": "per_page", "label": "Products per page", "min": 12, "max": 48, "step": 4, "default": 48, "info": "Each design has one product per style, so a page shows fewer cards than this." }
   ]
 }
