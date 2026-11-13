@@ -29,14 +29,9 @@
           assign designs = 0
           if col
             for p in col.products
-              # a design = the first product in its sibling list (or a product with no siblings);
-              # read the list with a loop: .first is empty on metafield list values
-              assign lead = p
-              for sib in p.metafields.merchouse.sibling_products.value
-                assign lead = sib
-                break
-              endfor
-              if lead.id == p.id
+              assign sibs = p.metafields.merchouse.sibling_products.value
+              assign first_sib = sibs | first
+              if sibs == blank or first_sib.id == p.id
                 assign designs = designs | plus: 1
               endif
             endfor

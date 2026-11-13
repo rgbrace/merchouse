@@ -67,14 +67,12 @@
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 320px;
+  height: var(--mh-hero-height, 220px);
   padding-inline: var(--mh-gutter);
   background: var(--mh-tiber);
   overflow: hidden;
 }
 .mh-shops-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.mh-shops-hero::after { content: ''; position: absolute; inset: 0; background: rgba(6, 48, 56, 0.45); }
-.mh-shops-hero--plain::after { display: none; }
 .mh-search {
   position: relative;
   z-index: 1;
@@ -98,6 +96,11 @@
   color: var(--mh-tiber);
   outline: none;
 }
+/* Focus: no rectangle on the text field (Dawn's default ring); outline the rounded bar instead,
+   in the same green ring the other Merchouse controls use. */
+.mh-search__input:focus,
+.mh-search__input:focus-visible { outline: none; box-shadow: none; }
+.mh-search:focus-within { outline: 2px solid var(--mh-green); outline-offset: 2px; }
 .mh-search__input::placeholder { color: var(--mh-tiber); opacity: 1; }
 .mh-search__input::-webkit-search-cancel-button { display: none; }
 .mh-search__btn {
@@ -156,7 +159,6 @@
   .mh-schools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 749px) {
-  .mh-shops-hero { min-height: 160px; }
   .mh-search { height: 52px; }
   .mh-shops-body { padding-top: 24px; padding-bottom: 48px; }
   .mh-schools { grid-template-columns: 1fr; }
@@ -170,19 +172,24 @@
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 268px;
+  height: var(--mh-hero-height, 220px);
   padding-bottom: 40px;
   background: var(--mh-tiber);
   overflow: hidden;
 }
 .mh-shop-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.mh-shop-hero::after { content: ''; position: absolute; inset: 0; background: rgba(6, 48, 56, 0.5); }
+/* No color tint on hero photos: a neutral fade along the bottom keeps the name readable
+   without changing the photo's colors. --mh-hero-shade sets how dark the fade gets (0 = none). */
+.mh-shop-hero { --mh-hero-shade: 0.55; }
+.mh-shop-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, var(--mh-hero-shade)) 0%, rgba(0, 0, 0, 0) 65%); }
 .mh-shop-hero--plain::after { display: none; }
-.mh-shop-hero__text { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px; color: var(--mh-white); }
+.mh-shop-hero__text { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; color: var(--mh-white); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35); }
 .mh-shop-hero__eyebrow { margin: 0; font: var(--mh-type-body-bold); text-transform: uppercase; }
 .mh-shop-hero__eyebrow a { color: inherit; text-decoration: none; }
 .mh-shop-hero__eyebrow a:hover { text-decoration: underline; }
-.mh-shop-hero__title { margin: 0; font: var(--mh-type-hero); color: var(--mh-white); text-transform: uppercase; letter-spacing: 0; overflow-wrap: anywhere; }
+/* Title sits on the hero's bottom padding: line-height 1 plus a small negative margin removes the
+   font's built-in space under the letters, so the baseline lands exactly 40px (20px on phones) from the bottom. */
+.mh-shop-hero__title { margin: 0 0 -0.094em; font: var(--mh-type-hero); line-height: 1; color: var(--mh-white); text-transform: uppercase; letter-spacing: 0; overflow-wrap: anywhere; }
 
 /* filter bar + panel */
 .mh-filter { background: var(--mh-linen); }
@@ -236,27 +243,32 @@
 .mh-filter__options { display: flex; flex-wrap: wrap; justify-content: center; gap: 32px; }
 .mh-filter__options[hidden] { display: none; }
 .mh-filter__options--list, .mh-filter__options--colors { gap: 12px; max-width: 1032px; }
-.mh-opt-style { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 120px; cursor: pointer; }
-.mh-opt-style__icon { display: block; width: 100px; height: 100px; color: var(--mh-amber); }
-.mh-opt-style__icon .mh-style-icon { width: 100%; height: 100%; stroke-width: 1; }
-.mh-opt-style__label { font: var(--mh-type-label); color: var(--mh-sky); white-space: nowrap; }
-.mh-opt-style:hover .mh-opt-style__icon { color: var(--mh-sky); }
-.mh-opt-style.is-selected .mh-opt-style__icon { color: var(--mh-tiber); }
-.mh-opt-style.is-selected .mh-opt-style__label { color: var(--mh-tiber); }
-.mh-opt-style.is-unavailable { opacity: 0.4; cursor: default; }
-.mh-opt-style.is-unavailable:hover .mh-opt-style__icon { color: var(--mh-amber); }
+.mh-filter__options--styles { gap: 24px; }   /* same spacing as the product page Style row */
+.mh-filter__options--colors { gap: 8px; }
+/* Style options match the product page's Style row (.mh-style): 48px icon, amber -> sky on hover -> tiber when selected. */
+.mh-opt-style { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 48px; cursor: pointer; color: var(--mh-amber); }
+.mh-opt-style__icon { display: block; width: 48px; height: 48px; color: inherit; transition: color 0.15s ease; }
+.mh-opt-style__icon .mh-style-icon { width: 100%; height: 100%; }
+.mh-opt-style__label { font: var(--mh-type-label); color: var(--mh-tiber); white-space: nowrap; }
+.mh-opt-style:hover { color: var(--mh-sky); }
+.mh-opt-style.is-selected { color: var(--mh-tiber); }
 .mh-pill--check { background: var(--mh-white); }
-.mh-opt-color { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 72px; cursor: pointer; text-align: center; }
+/* Color options match the product page swatch (.mh-swatch): 24px dot in a 32px ring (28/36 on phones);
+   ring shows amber on hover, tiber when selected. */
+.mh-opt-color { --ring: 32px; --dot: 24px; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; cursor: pointer; text-align: center; }
 .mh-opt-color__dot {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: var(--swatch, #ccc);
-  box-shadow: inset 0 0 0 1px rgba(6, 48, 56, 0.15);
+  position: relative; width: var(--ring); height: var(--ring); border-radius: 50%;
+  border: 2px solid transparent; transition: border-color 0.15s ease;
 }
-.mh-opt-color__dot.is-heather { background-color: var(--swatch, #ccc); background-image: var(--mh-heather-tex); background-size: 32px 32px; background-blend-mode: soft-light; }
+.mh-opt-color__dot::before {
+  content: ''; position: absolute; inset: 2px; border-radius: 50%;
+  background: var(--swatch, #ccc); box-shadow: inset 0 0 0 1px rgba(6, 48, 56, 0.15);
+}
+.mh-opt-color__dot.is-heather::before { background-color: var(--swatch, #ccc); background-image: var(--mh-heather-tex); background-size: 32px 32px; background-blend-mode: soft-light; }
 .mh-opt-color__label { font: var(--mh-type-subtext); color: var(--mh-sky); line-height: 1.2; }
-.mh-opt-color.is-selected .mh-opt-color__dot { box-shadow: 0 0 0 2px var(--mh-linen), 0 0 0 4px var(--mh-tiber); }
+.mh-opt-color:hover .mh-opt-color__dot { border-color: var(--mh-amber); }
+.mh-opt-color.is-selected .mh-opt-color__dot { border-color: var(--mh-tiber); }
 .mh-opt-color.is-selected .mh-opt-color__label { color: var(--mh-tiber); font-weight: 700; }
-.mh-opt-color.is-unavailable { opacity: 0.4; cursor: default; }
 
 /* team navigation */
 .mh-teams { padding: 32px var(--mh-gutter) 0; }
@@ -280,15 +292,15 @@
 
 @media (max-width: 989px) {
   .mh-shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .mh-filter__options--styles { gap: 24px; }
+  .mh-filter__options--styles { gap: 16px; }
 }
 @media (max-width: 749px) {
-  .mh-shop-hero { min-height: 160px; padding-bottom: 20px; }
-  .mh-shop-hero__title { font: var(--mh-type-m-hero); }
+  .mh-shop-hero { padding-bottom: 20px; }
+  .mh-shop-hero__title { font: var(--mh-type-m-hero); line-height: 1; }
   .mh-filter__panel { padding: 16px 20px 40px; gap: 24px; }
   .mh-filter__tabs { justify-content: flex-start; align-self: stretch; }
-  .mh-filter__options--styles { display: grid; grid-template-columns: repeat(2, 120px); gap: 24px 40px; }
-  .mh-filter__options--styles .mh-opt-style:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; }
+  .mh-filter__options--styles { gap: 16px; }
+  .mh-opt-color { --ring: 36px; --dot: 28px; }
   .mh-teams { padding: 16px 0 0; }
   .mh-teams__list { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; padding: 0 20px 4px; scrollbar-width: none; }
   .mh-teams__list::-webkit-scrollbar { display: none; }
