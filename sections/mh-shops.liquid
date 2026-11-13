@@ -30,7 +30,8 @@
           if col
             for p in col.products
               assign sibs = p.metafields.merchouse.sibling_products.value
-              if sibs == blank or sibs.first.id == p.id
+              assign first_sib = sibs | first
+              if sibs == blank or first_sib.id == p.id
                 assign designs = designs | plus: 1
               endif
             endfor

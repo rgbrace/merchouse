@@ -245,7 +245,8 @@
             assign show = true
             unless any_active
               assign sibs = p.metafields.merchouse.sibling_products.value
-              if sibs != blank and sibs.first.id != p.id
+              assign first_sib = sibs | first
+              if sibs != blank and first_sib.id != p.id
                 assign show = false
               endif
             endunless
