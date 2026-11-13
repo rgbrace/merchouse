@@ -26,12 +26,9 @@
         break
       endif
     endfor
-    for v in p.variants
-      if v.options contains color
-        assign href = v.url
-        break
-      endif
-    endfor
+    # The product page opens on this color via ?color= (same as its style links); size is left unpicked.
+    assign color_q = color | url_param_escape
+    assign href = p.url | append: '?color=' | append: color_q
   endif
 
   assign back = nil
