@@ -140,7 +140,7 @@
           {%- if f_color -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'colors' %} is-active{% endif %}" role="tab" data-mh-tab="colors" aria-selected="{% if first_tab == 'colors' %}true{% else %}false{% endif %}">Colors</button>{%- endif -%}
         </div>
 
-        {%- comment -%} Styles: the full garment line-up; a style with no products here is shown faded. {%- endcomment -%}
+        {%- comment -%} Styles, gear, brands and colors: only options with products here are shown (a checked one always shows so it can be cleared). {%- endcomment -%}
         {%- if has_styles -%}
           <div class="mh-filter__options mh-filter__options--styles" role="tabpanel" data-mh-pane="styles"{% unless first_tab == 'styles' %} hidden{% endunless %}>
             {%- assign style_keys = 'tee,long,performance,polo,sweatshirt,hooded,zip' | split: ',' -%}
@@ -164,11 +164,13 @@
                   endif
                 endfor
               -%}
-              <label class="mh-opt-style{% if count == 0 and checked == false %} is-unavailable{% endif %}">
-                <input type="checkbox" class="visually-hidden" name="{{ f_type.param_name }}" value="{{ vals | split: '|' | first | escape }}" data-mh-values="{{ vals | escape }}" {% if checked %}checked{% endif %} {% if count == 0 and checked == false %}disabled{% endif %}>
+              {%- if count > 0 or checked -%}
+              <label class="mh-opt-style">
+                <input type="checkbox" class="visually-hidden" name="{{ f_type.param_name }}" value="{{ vals | split: '|' | first | escape }}" data-mh-values="{{ vals | escape }}" {% if checked %}checked{% endif %}>
                 <span class="mh-opt-style__icon">{% render 'mh-style-icon', style: label %}</span>
                 <span class="mh-opt-style__label">{{ label }}</span>
               </label>
+              {%- endif -%}
             {%- endfor -%}
           </div>
         {%- endif -%}
@@ -177,9 +179,9 @@
           <div class="mh-filter__options mh-filter__options--list" role="tabpanel" data-mh-pane="gear"{% unless first_tab == 'gear' %} hidden{% endunless %}>
             {%- for v in f_type.values -%}
               {%- capture k -%}{%- render 'mh-style-key', type: v.value -%}{%- endcapture -%}
-              {%- if k == 'gear' -%}
-                <label class="mh-pill mh-pill--check{% if v.count == 0 and v.active == false %} is-unavailable{% endif %}">
-                  <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %} {% if v.count == 0 and v.active == false %}disabled{% endif %}>
+              {%- if k == 'gear' and v.count > 0 or k == 'gear' and v.active -%}
+                <label class="mh-pill mh-pill--check">
+                  <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %}>
                   <span>{{ v.label | escape }}</span>
                 </label>
               {%- endif -%}
@@ -190,10 +192,12 @@
         {%- if f_vendor -%}
           <div class="mh-filter__options mh-filter__options--list" role="tabpanel" data-mh-pane="brands"{% unless first_tab == 'brands' %} hidden{% endunless %}>
             {%- for v in f_vendor.values -%}
-              <label class="mh-pill mh-pill--check{% if v.count == 0 and v.active == false %} is-unavailable{% endif %}">
-                <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %} {% if v.count == 0 and v.active == false %}disabled{% endif %}>
+              {%- if v.count > 0 or v.active -%}
+              <label class="mh-pill mh-pill--check">
+                <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %}>
                 <span>{{ v.label | escape }}</span>
               </label>
+              {%- endif -%}
             {%- endfor -%}
           </div>
         {%- endif -%}
@@ -201,12 +205,14 @@
         {%- if f_color -%}
           <div class="mh-filter__options mh-filter__options--colors" role="tabpanel" data-mh-pane="colors"{% unless first_tab == 'colors' %} hidden{% endunless %}>
             {%- for v in f_color.values -%}
+              {%- if v.count > 0 or v.active -%}
               {%- assign vlow = v.label | downcase -%}
-              <label class="mh-opt-color{% if v.count == 0 and v.active == false %} is-unavailable{% endif %}" title="{{ v.label | escape }}">
-                <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %} {% if v.count == 0 and v.active == false %}disabled{% endif %}>
+              <label class="mh-opt-color" title="{{ v.label | escape }}">
+                <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %}>
                 <span class="mh-opt-color__dot{% if vlow contains 'heather' or vlow contains 'tri-blend' %} is-heather{% endif %}" style="--swatch: {% render 'mh-swatch-color', value: v.label %};"></span>
                 <span class="mh-opt-color__label">{{ v.label | escape }}</span>
               </label>
+              {%- endif -%}
             {%- endfor -%}
           </div>
         {%- endif -%}
