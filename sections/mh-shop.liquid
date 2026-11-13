@@ -70,6 +70,15 @@
     endif
   endfor
 
+  # Picked colors as "|black|hot pink|" so a card can be shown per matching color.
+  assign picked_colors = ''
+  if f_color
+    for v in f_color.active_values
+      assign pl = v.label | downcase
+      assign picked_colors = picked_colors | append: '|' | append: pl | append: '|'
+    endfor
+  endif
+
   # Brands tab lists premium brands only. Stock garments carry the house brand as vendor; it is never listed.
   assign house_brand = section.settings.house_brand | default: 'Merchouse' | downcase | strip
   assign has_brands = false
@@ -276,7 +285,27 @@
             endunless
           -%}
           {%- if show -%}
-            <li class="mh-shop-grid__item">{%- render 'mh-product-card', p: p -%}</li>
+            {%- comment -%} Colors picked in the filter: one card per matching color (photo + link for that color). Otherwise one card per product. {%- endcomment -%}
+            {%- assign card_colors = '' -%}
+            {%- if picked_colors != blank -%}
+              {%- for o in p.options_with_values -%}
+                {%- assign on = o.name | downcase -%}
+                {%- if on contains 'color' or on contains 'colour' -%}
+                  {%- for cv in o.values -%}
+                    {%- assign cvl = cv | downcase | prepend: '|' | append: '|' -%}
+                    {%- if picked_colors contains cvl -%}{%- assign card_colors = card_colors | append: cv | append: '|' -%}{%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+            {%- if card_colors != '' -%}
+              {%- assign cc = card_colors | split: '|' -%}
+              {%- for c in cc -%}
+                <li class="mh-shop-grid__item">{%- render 'mh-product-card', p: p, color: c -%}</li>
+              {%- endfor -%}
+            {%- else -%}
+              <li class="mh-shop-grid__item">{%- render 'mh-product-card', p: p -%}</li>
+            {%- endif -%}
           {%- endif -%}
         {%- else -%}
           <li class="mh-shop-grid__empty">
