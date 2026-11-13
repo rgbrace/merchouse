@@ -8,11 +8,30 @@
     endif
   endfor
   assign style_count = p.metafields.merchouse.sibling_products.value.size | default: p.metafields.custom.style_siblings.value.size | default: 0
+
+  comment
+    Hover shows the back: only for designs with a back print (merchouse.has_back_print, set by
+    M Studio builds), using the back photo of the same color as the card's front ("Black front" -> "Black back").
+    Other designs keep the zoom.
+  endcomment
+  assign back = nil
+  if p.metafields.merchouse.has_back_print.value == true and p.featured_media
+    assign back_alt = p.featured_media.alt | replace: ' front', ' back'
+    for m in p.media
+      if m.alt == back_alt and m.id != p.featured_media.id
+        assign back = m
+        break
+      endif
+    endfor
+  endif
 -%}
-<a class="mh-card" href="{{ p.url }}">
+<a class="mh-card{% if back %} has-back{% endif %}" href="{{ p.url }}">
   <span class="mh-card__media">
     {%- if p.featured_media -%}
       {{ p.featured_media | image_url: width: 800 | image_tag: loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: p.title }}
+      {%- if back -%}
+        {{ back | image_url: width: 800 | image_tag: class: 'mh-card__back', loading: 'lazy', widths: '300, 400, 600, 800', sizes: '(min-width: 990px) 380px, 80vw', alt: '' }}
+      {%- endif -%}
     {%- else -%}
       {{ 'product-apparel-1' | placeholder_svg_tag: 'mh-card__placeholder' }}
     {%- endif -%}
