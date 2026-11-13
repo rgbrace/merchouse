@@ -8,6 +8,7 @@
     custom.style_siblings metafield (list of products).
 
   Data model (see MERCHOUSE-SETUP.md):
+    merchouse.school            All-school merch only (no team): the Organization.
     merchouse.team              Team entry → its Organization. Sets the
                                 "GEORGETOWN HS | TENNIS" label, the give-back
                                 name and the More From collection.
@@ -38,6 +39,10 @@
   assign mh = product.metafields.merchouse
   assign team = mh.team.value
   assign org = team.school.value
+  # All-school merch: no team, merchouse.school points at the Organization.
+  if team == blank
+    assign org = mh.school.value
+  endif
 
   assign style_name = mh.style.value.name.value | default: mf.style.value | default: product.type | default: 'T-Shirt'
   assign siblings = mh.sibling_products.value | default: mf.style_siblings.value
@@ -50,6 +55,10 @@
     assign team_label = org_name | append: ' | ' | append: team.name.value
     assign fallback_recipient = org.short_name.value | default: org_name | append: ' ' | append: team.name.value
     assign recipient = team.giveback_name.value | default: fallback_recipient
+  elsif org
+    assign org_name = org.name.value | default: org.short_name.value
+    assign team_label = org_name
+    assign recipient = org.short_name.value | default: org_name
   else
     assign team_label = mf.team_label.value | default: product.vendor
     assign recipient = mf.giveback_recipient.value | default: product.vendor
@@ -79,7 +88,7 @@
     assign sibling_ids = sibling_ids | append: sib.id | append: ','
   endfor
 
-  assign team_collection = team.collection.value | default: mf.team_collection.value
+  assign team_collection = team.collection.value | default: org.collection.value | default: mf.team_collection.value
   if team_collection == blank
     for c in product.collections
       unless c.handle == 'all' or c.handle == 'frontpage'
@@ -166,6 +175,9 @@
               {%- if org_shop -%}<a href="{{ org_shop.url }}">{{ org_name | escape }}</a>{%- else -%}{{ org_name | escape }}{%- endif -%}
               {{- ' | ' -}}
               {%- if team_shop -%}<a href="{{ team_shop.url }}">{{ team.name.value | escape }}</a>{%- else -%}{{ team.name.value | escape }}{%- endif -%}
+            {%- elsif org -%}
+              {%- assign org_shop = org.collection.value -%}
+              {%- if org_shop -%}<a href="{{ org_shop.url }}">{{ org_name | escape }}</a>{%- else -%}{{ org_name | escape }}{%- endif -%}
             {%- else -%}
               {{- team_label | escape -}}
             {%- endif -%}
