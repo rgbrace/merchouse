@@ -96,6 +96,11 @@
   color: var(--mh-tiber);
   outline: none;
 }
+/* Focus: no rectangle on the text field (Dawn's default ring); outline the rounded bar instead,
+   in the same green ring the other Merchouse controls use. */
+.mh-search__input:focus,
+.mh-search__input:focus-visible { outline: none; box-shadow: none; }
+.mh-search:focus-within { outline: 2px solid var(--mh-green); outline-offset: 2px; }
 .mh-search__input::placeholder { color: var(--mh-tiber); opacity: 1; }
 .mh-search__input::-webkit-search-cancel-button { display: none; }
 .mh-search__btn {
