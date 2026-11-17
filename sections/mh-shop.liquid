@@ -58,6 +58,7 @@
   assign f_type = nil
   assign f_vendor = nil
   assign f_color = nil
+  assign f_group = nil
   for f in collection.filters
     assign pn = f.param_name | downcase
     assign fl = f.label | downcase
@@ -65,10 +66,18 @@
       assign f_type = f
     elsif pn == 'filter.p.vendor'
       assign f_vendor = f
+    elsif pn contains 'merchouse.color_groups'
+      assign f_group = f
     elsif pn contains 'option.color' or fl == 'color' or fl == 'colour'
       assign f_color = f
     endif
   endfor
+  # Colors tab: color groups (Heathers, Blue…, product field merchouse.color_groups) when that filter
+  # is set up in Search & Discovery, otherwise every single color.
+  assign has_colors = false
+  if f_group or f_color
+    assign has_colors = true
+  endif
 
   # Picked colors as "|black|hot pink|" so a card can be shown per matching color.
   assign picked_colors = ''
@@ -76,6 +85,15 @@
     for v in f_color.active_values
       assign pl = v.label | downcase
       assign picked_colors = picked_colors | append: '|' | append: pl | append: '|'
+    endfor
+  endif
+  # Picked groups as "|blue|heathers|": a design shows one card per color in any picked group
+  # (merchouse.color_group_map says which groups each color is in).
+  assign picked_groups = ''
+  if f_group
+    for v in f_group.active_values
+      assign pl = v.label | downcase
+      assign picked_groups = picked_groups | append: '|' | append: pl | append: '|'
     endfor
   endif
 
@@ -152,7 +170,7 @@
             assign first_tab = 'gear'
           elsif has_brands
             assign first_tab = 'brands'
-          elsif f_color
+          elsif has_colors
             assign first_tab = 'colors'
           endif
         -%}
@@ -160,7 +178,7 @@
           {%- if has_styles -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'styles' %} is-active{% endif %}" role="tab" data-mh-tab="styles" aria-selected="{% if first_tab == 'styles' %}true{% else %}false{% endif %}">Styles</button>{%- endif -%}
           {%- if has_gear -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'gear' %} is-active{% endif %}" role="tab" data-mh-tab="gear" aria-selected="{% if first_tab == 'gear' %}true{% else %}false{% endif %}">Gear</button>{%- endif -%}
           {%- if has_brands -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'brands' %} is-active{% endif %}" role="tab" data-mh-tab="brands" aria-selected="{% if first_tab == 'brands' %}true{% else %}false{% endif %}">Brands</button>{%- endif -%}
-          {%- if f_color -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'colors' %} is-active{% endif %}" role="tab" data-mh-tab="colors" aria-selected="{% if first_tab == 'colors' %}true{% else %}false{% endif %}">Colors</button>{%- endif -%}
+          {%- if has_colors -%}<button type="button" class="mh-pill mh-pill--on-linen{% if first_tab == 'colors' %} is-active{% endif %}" role="tab" data-mh-tab="colors" aria-selected="{% if first_tab == 'colors' %}true{% else %}false{% endif %}">Colors</button>{%- endif -%}
         </div>
 
         {%- comment -%} Styles, gear, brands and colors: only options with products here are shown (a checked one always shows so it can be cleared). {%- endcomment -%}
@@ -229,7 +247,27 @@
           </div>
         {%- endif -%}
 
-        {%- if f_color -%}
+        {%- if f_group -%}
+          {%- comment -%} Color groups, in M Studio's order. Dot colors live here (one place). {%- endcomment -%}
+          <div class="mh-filter__options mh-filter__options--colors" role="tabpanel" data-mh-pane="colors"{% unless first_tab == 'colors' %} hidden{% endunless %}>
+            {%- assign group_names = 'Heathers|Black & Gray|White & Cream|Tan & Brown|Red|Pink|Orange|Yellow|Green|Blue|Purple' | split: '|' -%}
+            {%- assign group_dots = '#b9b9bf|#3a3a3a|#f3efe4|#a07850|#c0262d|#f0a0b8|#ef7a22|#f2c230|#2e8b4a|#2a5aa8|#6a4a9c' | split: '|' -%}
+            {%- for gname in group_names -%}
+              {%- assign gi = forloop.index0 -%}
+              {%- for v in f_group.values -%}
+                {%- if v.label == gname -%}
+                  {%- if v.count > 0 or v.active -%}
+                  <label class="mh-opt-color mh-opt-color--group{% if v.active %} is-selected{% endif %}" title="{{ v.label | escape }}">
+                    <input type="checkbox" class="visually-hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}" {% if v.active %}checked{% endif %}>
+                    <span class="mh-opt-color__dot{% if gname == 'Heathers' %} is-heather{% endif %}" style="--swatch: {{ group_dots[gi] }};"></span>
+                    <span class="mh-opt-color__label">{{ v.label | escape }}</span>
+                  </label>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endfor -%}
+          </div>
+        {%- elsif f_color -%}
           <div class="mh-filter__options mh-filter__options--colors" role="tabpanel" data-mh-pane="colors"{% unless first_tab == 'colors' %} hidden{% endunless %}>
             {%- for v in f_color.values -%}
               {%- if v.count > 0 or v.active -%}
@@ -303,13 +341,22 @@
           {%- if show -%}
             {%- comment -%} Colors picked in the filter: one card per matching color (photo + link for that color). Otherwise one card per product. {%- endcomment -%}
             {%- assign card_colors = '' -%}
-            {%- if picked_colors != blank -%}
+            {%- if picked_colors != blank or picked_groups != blank -%}
+              {%- assign gmap = p.metafields.merchouse.color_group_map.value -%}
               {%- for o in p.options_with_values -%}
                 {%- assign on = o.name | downcase -%}
                 {%- if on contains 'color' or on contains 'colour' -%}
                   {%- for cv in o.values -%}
                     {%- assign cvl = cv | downcase | prepend: '|' | append: '|' -%}
-                    {%- if picked_colors contains cvl -%}{%- assign card_colors = card_colors | append: cv | append: '|' -%}{%- endif -%}
+                    {%- assign hit = false -%}
+                    {%- if picked_colors contains cvl -%}{%- assign hit = true -%}{%- endif -%}
+                    {%- if picked_groups != blank and gmap -%}
+                      {%- for gx in gmap[cv] -%}
+                        {%- assign gxl = gx | downcase | prepend: '|' | append: '|' -%}
+                        {%- if picked_groups contains gxl -%}{%- assign hit = true -%}{%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+                    {%- if hit -%}{%- assign card_colors = card_colors | append: cv | append: '|' -%}{%- endif -%}
                   {%- endfor -%}
                 {%- endif -%}
               {%- endfor -%}

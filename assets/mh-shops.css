@@ -266,6 +266,7 @@
 }
 .mh-opt-color__dot.is-heather::before { background-color: var(--swatch, #ccc); background-image: var(--mh-heather-tex); background-size: 32px 32px; background-blend-mode: soft-light; }
 .mh-opt-color__label { font: var(--mh-type-subtext); color: var(--mh-sky); line-height: 1.2; }
+.mh-opt-color--group { width: 76px; }   /* group names ("White & Cream") wrap to two short lines */
 .mh-opt-color:hover .mh-opt-color__dot { border-color: var(--mh-amber); }
 .mh-opt-color.is-selected .mh-opt-color__dot { border-color: var(--mh-tiber); }
 .mh-opt-color.is-selected .mh-opt-color__label { color: var(--mh-tiber); font-weight: 700; }
