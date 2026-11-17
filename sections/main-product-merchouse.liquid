@@ -83,6 +83,24 @@
     endif
   endfor
 
+  # One fit only (e.g. "Women"): the Fit row is hidden, and the fit is named next to the
+  # style unless the style name already says it (Women's Boxy Tee) or it's plain Adult.
+  assign single_fit = ''
+  if fit_index > -1
+    assign fit_opt = product.options_with_values[fit_index]
+    if fit_opt.values.size == 1
+      assign single_fit = fit_opt.values.first
+    endif
+  endif
+  assign style_note = ''
+  if single_fit != ''
+    assign sf_low = single_fit | downcase
+    assign sn_low = style_name | downcase
+    unless sn_low contains sf_low or sf_low == 'adult'
+      assign style_note = single_fit
+    endunless
+  endif
+
   assign sibling_ids = product.id | append: ','
   for sib in siblings
     assign sibling_ids = sibling_ids | append: sib.id | append: ','
@@ -227,11 +245,12 @@
 
             {%- if section.settings.show_styles -%}
               {%- comment -%} Style row sits right after Color, like the Figma file. {%- endcomment -%}
-              {%- render 'mh-style-row', product: product, style_name: style_name, siblings: siblings -%}
+              {%- render 'mh-style-row', product: product, style_name: style_name, siblings: siblings, style_note: style_note -%}
             {%- endif -%}
 
           {%- elsif oi == fit_index -%}
-            <fieldset class="mh-opt" data-mh-option="{{ oi }}" data-kind="fit">
+            {%- comment -%} One fit only: keep the fieldset (the script reads its selection) but hide it. {%- endcomment -%}
+            <fieldset class="mh-opt" data-mh-option="{{ oi }}" data-kind="fit"{% if single_fit != '' %} hidden{% endif %}>
               <legend class="mh-opt__label">{{ option.name | escape }}</legend>
               <div class="mh-fit">
                 {%- for value in option.values -%}
@@ -267,7 +286,7 @@
         {%- endfor -%}
 
         {%- if section.settings.show_styles and color_index == -1 -%}
-          {%- render 'mh-style-row', product: product, style_name: style_name, siblings: siblings -%}
+          {%- render 'mh-style-row', product: product, style_name: style_name, siblings: siblings, style_note: style_note -%}
         {%- endif -%}
 
         <noscript>
