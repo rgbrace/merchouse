@@ -1,8 +1,6 @@
 {%- comment -%}
   Style picker: links between style versions of one design (merchouse.sibling_products).
-  Params: product, style_name, siblings (list of products, may include this product),
-  style_note (optional, e.g. a single fit "Youth" shown after the style name).
-  A product with only one style shows a plain "Style  Women's Boxy Tee" line instead of icons.
+  Params: product, style_name, siblings (list of products, may include this product).
 {%- endcomment -%}
 {%- liquid
   assign has_self = false
@@ -11,19 +9,8 @@
       assign has_self = true
     endif
   endfor
-  assign style_count = siblings.size
-  unless has_self
-    assign style_count = style_count | plus: 1
-  endunless
 -%}
-{%- if style_count < 2 -%}
-  <div class="mh-opt mh-styles mh-styles--single" data-kind="style">
-    <p class="mh-opt__label">
-      Style
-      <span class="mh-opt__value">{{ style_name | escape }}{% if style_note != blank %} · {{ style_note | escape }}{% endif %}</span>
-    </p>
-  </div>
-{%- elsif siblings != blank -%}
+{%- if siblings != blank -%}
   <div class="mh-opt mh-styles" data-kind="style">
     <p class="mh-opt__label">Style</p>
     <ul class="mh-styles__row" role="list">
