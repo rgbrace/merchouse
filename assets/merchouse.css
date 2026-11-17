@@ -14,7 +14,7 @@
 
   /* Figma text styles (Design System page). Figma "auto" line height ≈ 1.26 */
   --mh-lh: 1.26;
-  --mh-type-hero: 800 48px / var(--mh-lh) var(--mh-font);
+  --mh-type-hero: 800 64px / var(--mh-lh) var(--mh-font);
   --mh-type-h1: 800 48px / var(--mh-lh) var(--mh-font);
   --mh-type-h2: 700 32px / var(--mh-lh) var(--mh-font);
   --mh-type-h3: 700 24px / var(--mh-lh) var(--mh-font);
@@ -28,7 +28,7 @@
   --mh-type-button-m: 600 15px / var(--mh-lh) var(--mh-font);
   --mh-type-button-s: 600 13px / var(--mh-lh) var(--mh-font);
   /* Mobile text styles */
-  --mh-type-m-hero: 800 30px / var(--mh-lh) var(--mh-font);
+  --mh-type-m-hero: 800 36px / var(--mh-lh) var(--mh-font);
   --mh-type-m-h1: 800 32px / var(--mh-lh) var(--mh-font);
   --mh-type-m-h2: 700 24px / var(--mh-lh) var(--mh-font);
   --mh-type-m-h3: 700 20px / var(--mh-lh) var(--mh-font);
@@ -65,33 +65,8 @@ details-modal.header__search {
   display: none !important;
 }
 .mh-logo img {
-  width: auto;
-  height: 48px;
-}
-
-/* Header: 64px bar per Figma (Header/Nav, Section/Header-Full).
-   48px logo + 8px above/below; Figma's hamburger (40x27) and bag (30x40) icons. */
-.section-header .header {
-  padding-top: 0;
-  padding-bottom: 0;
-  min-height: 64px;
-}
-.section-header .header__heading-link {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-.header__icon--menu .icon-hamburger {
-  width: 40px;
-  height: 27px;
-}
-.header__icon--cart .icon {
-  width: 30px;
-  height: 40px;
-}
-.header__icon--cart .svg-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 36px;
+  height: auto;
 }
 .footer {
   font-family: var(--mh-font);
@@ -464,7 +439,7 @@ details-modal.header__search {
 .mh-pdp {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 48px 20px var(--mh-space-24); /* 48px under the header (was 88px), per the Bonfire comparison */
+  padding: var(--mh-space-22) 20px var(--mh-space-24);
   color: var(--mh-tiber);
   font: var(--mh-type-body);
   letter-spacing: 0; /* Dawn adds 0.6px to body text; Figma uses 0 */
@@ -547,13 +522,6 @@ details-modal.header__search {
   text-transform: uppercase;
   color: var(--mh-sky);
 }
-.mh-pdp__subtitle a {
-  color: inherit;
-  text-decoration: none;
-  text-underline-offset: 3px;
-}
-.mh-pdp__subtitle a:hover { text-decoration: underline; }
-.mh-pdp__subtitle a:focus-visible { outline: 2px solid var(--mh-green); outline-offset: 2px; border-radius: 2px; }
 .mh-pdp__spec {
   margin: var(--mh-space-2) 0 0;
   font: var(--mh-type-subtext);
@@ -947,13 +915,12 @@ details-modal.header__search {
 .mh-swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--mh-space-4);
 }
-/* Color swatch: 24px color dot inside a 32px ring (2px stroke) that shows on hover/selected.
-   Smaller than Figma's 40/48 to match the Bonfire-style compact picker. */
+/* Figma "Color Swatch": 40px color dot inside a 48px ring (2px stroke) that shows on hover/selected */
 .mh-swatch {
-  --ring: 32px;
-  --dot: 24px;
+  --ring: 48px;
+  --dot: 40px;
   display: grid;
   place-items: center;
   width: var(--ring);
@@ -1175,19 +1142,6 @@ a.mh-style:focus-visible {
 .mh-card:hover .mh-card__media img {
   transform: scale(1.03);
 }
-/* Designs with a back print: hovering fades to the back photo instead of zooming. */
-.mh-card.has-back .mh-card__media { position: relative; }
-.mh-card__back {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.mh-card.has-back:hover .mh-card__media img { transform: none; }
-@media (hover: hover) {
-  .mh-card.has-back:hover .mh-card__back,
-  .mh-card.has-back:focus-visible .mh-card__back { opacity: 1; }
-}
 .mh-card__dots {
   display: flex;
   gap: 6px;
@@ -1219,11 +1173,11 @@ a.mh-style:focus-visible {
     font: var(--mh-type-label);
   }
   .mh-swatches {
-    gap: 8px;
+    gap: var(--mh-space-3);
   }
   .mh-swatch {
-    --ring: 36px; /* a little larger on phones for tapping */
-    --dot: 28px;
+    --ring: 44px;
+    --dot: 36px;
   }
   .mh-more {
     margin-top: var(--mh-space-4);
@@ -1254,10 +1208,3 @@ a.mh-style:focus-visible {
     padding: 0 var(--mh-space-4);
   }
 }
-
-/* Style switch in place (merchouse-pdp.js): brief dim while the next style loads */
-.mh-pdp--full.is-switching { cursor: progress; }
-.mh-pdp--full.is-switching .mh-pdp__stage,
-.mh-pdp--full.is-switching .mh-pdp__details { opacity: .6; transition: opacity .15s ease .1s; }
-.mh-style:focus { outline: none; }
-.mh-style:focus-visible { outline: 2px solid var(--mh-green); outline-offset: 2px; }
