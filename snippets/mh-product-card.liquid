@@ -64,10 +64,11 @@
   {%- endif -%}
   <span class="mh-card__title">{{ p.title | split: ' – ' | first | escape }}</span>
   <span class="mh-card__price">{{ p.price | money_without_trailing_zeros }}</span>
-  {%- if style_count > 1 -%}
+  {%- comment -%} An own-card style (merchouse.own_card) names its own style rather than the design's count. {%- endcomment -%}
+  {%- if style_count > 1 and p.metafields.merchouse.own_card.value != true -%}
     <span class="mh-card__styles">Available in {{ style_count }} styles</span>
   {%- else -%}
-    {%- comment -%} Single-style product: name its style (e.g. "Women's Boxy Tee") in the same spot. {%- endcomment -%}
+    {%- comment -%} Single-style or own-card product: name its style (e.g. "Women's Boxy Tee") in the same spot. {%- endcomment -%}
     {%- assign style_name = p.metafields.merchouse.style.value.name.value | default: p.type -%}
     {%- if style_name != blank -%}<span class="mh-card__styles">{{ style_name | escape }}</span>{%- endif -%}
   {%- endif -%}

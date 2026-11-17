@@ -4,8 +4,8 @@
   a Team metaobject whose collection is this one → team page, breadcrumb back to its school.
   Filters are Shopify's own collection filters (product type → Styles/Gear, vendor → Brands,
   Color option → Colors), so counts and URLs stay native. With no filters active the grid shows
-  one card per design (the first product in merchouse.sibling_products); with filters on, every
-  matching product shows.
+  one card per design (the first product in merchouse.sibling_products), plus a card for any style
+  flagged merchouse.own_card; with filters on, every matching product shows.
 {%- endcomment -%}
 {{ 'mh-shops.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'mh-shop.js' | asset_url }}" defer="defer"></script>
@@ -293,7 +293,9 @@
             unless any_active
               assign sibs = p.metafields.merchouse.sibling_products.value
               assign first_sib = sibs | first
-              if sibs != blank and first_sib.id != p.id
+              # merchouse.own_card: a style that also gets its own card (e.g. a premium women's cut
+              # inside a 5-style design), on top of the design's main card.
+              if sibs != blank and first_sib.id != p.id and p.metafields.merchouse.own_card.value != true
                 assign show = false
               endif
             endunless
